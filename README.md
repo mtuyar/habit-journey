@@ -1,11 +1,61 @@
-<div align="center">
+# 🎯 Zincir - Hedef ve Alışkanlık Takipçisi
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+Zincir, büyük hedeflerinizi küçük, yönetilebilir aşamalara bölerek onlara ulaşmanızı sağlayan modern ve motive edici bir alışkanlık takip uygulamasıdır. 
 
-  <h1>Built with AI Studio</h2>
+"Zinciri kırma" felsefesinden ilham alan bu uygulama, her aşamayı geçmek için **%90 başarı oranı** kuralını uygulayarak sizi disiplinli kalmaya teşvik eder.
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+## ✨ Öne Çıkan Özellikler
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+- **🗺️ Aşama Bazlı İlerleme:** Büyük hedefinizi aylara, haftalara veya kendi belirlediğiniz özel aşamalara bölün.
+- **🎯 %90 Başarı Kuralı:** Bir sonraki aşamanın kilidini açmak için mevcut aşamadaki günlük görevlerinizi en az %90 oranında tamamlamanız gerekir. Başarısız olursanız, aşamayı tekrar edersiniz.
+- **🍱 Modern Bento Grid Tasarım:** Ana sayfanız, ilerlemenizi ve aktif aşamanızı en şık şekilde sunan modern bir Bento Grid yapısıyla tasarlanmıştır.
+- **📅 Zincir Görünümü:** Her aşamanın kendi takvimi vardır. Günlük görevlerinizi tamamladıkça takvimdeki günler yeşile döner, zinciri görsel olarak takip edersiniz.
+- **🎨 Premium Arayüz:** Açık renk teması (Light Theme), amber ve taş (stone) tonlarıyla göz yormayan, ferah ve akıcı animasyonlara (Framer Motion) sahip bir deneyim sunar.
+- **📱 Mobil Öncelikli (Mobile-First):** İster telefonda ister bilgisayarda kusursuz bir kullanım deneyimi.
 
-</div>
+## 🛠️ Teknolojiler
+
+Bu proje en güncel web teknolojileri kullanılarak geliştirilmiştir:
+
+- **React 18** (Kullanıcı Arayüzü)
+- **TypeScript** (Tip Güvenliği)
+- **Tailwind CSS** (Şekillendirme ve Tasarım Sistemi)
+- **Framer Motion** (Akıcı Animasyonlar ve Geçişler)
+- **Zustand** (Durum Yönetimi ve LocalStorage Entegrasyonu)
+- **date-fns** (Tarih ve Zaman İşlemleri)
+- **Lucide React** (Modern İkon Seti)
+- **Vite** (Hızlı Geliştirme Ortamı ve Derleyici)
+
+## 🚀 Kurulum ve Çalıştırma
+
+Projeyi kendi bilgisayarınızda çalıştırmak için aşağıdaki adımları izleyin:
+
+1. **Projeyi Klonlayın:**
+   ```bash
+   git clone <repo-url>
+   cd zincir-app
+   ```
+
+2. **Bağımlılıkları Yükleyin:**
+   ```bash
+   npm install
+   ```
+
+3. **Geliştirme Sunucusunu Başlatın:**
+   ```bash
+   npm run dev
+   ```
+
+4. **Tarayıcıda Açın:**
+   Tarayıcınızda `http://localhost:3000` (veya terminalde belirtilen port) adresine giderek uygulamayı görüntüleyebilirsiniz.
+
+## 💡 Nasıl Kullanılır?
+
+1. **Hedef Belirle:** Ulaşmak istediğin nihai hedefi yaz (Örn: İngilizce Öğrenmek, Forma Girmek).
+2. **Yolculuğu Planla:** Hedefini aşamalara böl (Örn: 1. Ay Temeller, 2. Ay Pratik). Her aşama için bir süre (gün) ve günlük görevler belirle.
+3. **Zinciri Başlat:** Aktif aşamanı başlat ve her gün görevlerini işaretle.
+4. **Seviye Atla:** Aşama süresi bittiğinde %90 başarıya ulaştıysan bir sonraki aşamanın kilidi açılır!
+
+## 📄 Lisans
+
+Bu proje MIT lisansı altında lisanslanmıştır. Dilediğiniz gibi kullanabilir, değiştirebilir ve geliştirebilirsiniz.
