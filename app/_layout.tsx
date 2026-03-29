@@ -22,7 +22,7 @@ export default function RootLayout() {
   return (
     <>
       <ThemeController />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#FAFAFA' } }}>
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#F0FDFA' } }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="settings" />
         <Stack.Screen name="create" options={{ presentation: 'modal' }} />

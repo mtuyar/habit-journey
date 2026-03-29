@@ -13,14 +13,21 @@ const dictionaries = {
     task: "Görev",
     progress: "İlerleme",
     days: "Gün",
-    
+
     // Dashboard (index.tsx)
     dashboardTitle: "Hedeflerim",
     activeJourneys: "Aktif Yolculuk",
     noJourneyTitle: "Yolculuk Başlamadı",
     noJourneyDesc: "Henüz hedefe giden bir yol haritası oluşturmadın. Tamamen temiz bir sayfa.",
     newJourneyBtn: "Yeni Hedef Belirle",
-    
+
+    // Streak & Today's Focus
+    streak: "Gün Serisi",
+    streakDays: "gün",
+    todaysFocus: "Bugünün Odağı",
+    tasksToday: "görev bugün",
+    allDoneToday: "Bugün her şey tamam! 🎉",
+
     // Create/Edit (create.tsx)
     startJourney: "Yolculuğu Başlat",
     defineGoal: "Hedefini Belirle",
@@ -52,7 +59,7 @@ const dictionaries = {
     addTaskPlaceholder: "Görev Yaz ve Ekle...",
     add: "Ekle",
     addStageToList: "Listeye Aşama Olarak Ekle",
-    
+
     // AI Integration
     aiSettingsTitle: 'Yapay Zeka (AI) Entegrasyonu',
     aiApiKeyLabel: 'Gemini API Anahtarı',
@@ -65,7 +72,7 @@ const dictionaries = {
     aiGenerateAction: 'Planla',
     aiErrorNoKey: 'Lütfen önce Ayarlar sayfasından Gemini API anahtarınızı girin.',
     aiErrorGeneration: 'Planlama sırasında bir hata oluştu. Komutunuzu değiştirip tekrar deneyin.',
-    
+
     // Journey Map (goal/[id].tsx)
     journeyNotFound: "Bu yolculuk bulunamadı veya silinmiş.",
     goBack: "Geri Dön",
@@ -86,7 +93,7 @@ const dictionaries = {
     newStageUnlockedTitle: "🌟 Harika! Yeni Aşama Açıldı!",
     goalCompletedDesc: "Bu hedefin tüm aşamalarını başarıyla (%90 üstü) bitirdiniz. Kendinizle gurur duyabilirsiniz.",
     newStageUnlockedDesc: "Bu aşamayı %90 başarıyla tamamladınız. Bir sonraki aşamanız artık açık ve sizi bekliyor!",
-    
+
     goalCompleteTitle: "Tebrikler! Hedef Tamamlandı!",
     goalCompleteDesc: "Bu hedefin tüm aşamalarını başarıyla (%90 üstü) bitirdiniz. Kendinizle gurur duyabilirsiniz.",
     stageCompleteTitle: "Harika! Yeni Aşama Açıldı!",
@@ -105,7 +112,7 @@ const dictionaries = {
     appLanguage: "Uygulama Dili",
     dailyReminders: "Günlük Hatırlatıcılar",
     reminderTime: "Hatırlatma Saati",
-    darkMode: "Koyu Tema (Yakında)",
+    darkMode: "Koyu Tema",
     dangerZone: "Tehlikeli Bölge",
     resetProgress: "Tüm İlerlemeyi Sıfırla",
     resetDesc: "Kayıtlı tüm yolculuklarınızı ve hedeflerinizi kalıcı olarak siler.",
@@ -128,14 +135,21 @@ const dictionaries = {
     task: "Task",
     progress: "Progress",
     days: "Days",
-    
+
     // Dashboard (index.tsx)
     dashboardTitle: "My Goals",
     activeJourneys: "Active Journeys",
     noJourneyTitle: "Journey Not Started",
     noJourneyDesc: "You haven't created a roadmap for your goals yet. A completely blank slate.",
     newJourneyBtn: "Set New Goal",
-    
+
+    // Streak & Today's Focus
+    streak: "Day Streak",
+    streakDays: "days",
+    todaysFocus: "Today's Focus",
+    tasksToday: "tasks today",
+    allDoneToday: "All done today! 🎉",
+
     // Create/Edit (create.tsx)
     startJourney: "Start Journey",
     defineGoal: "Define Your Goal",
@@ -167,7 +181,7 @@ const dictionaries = {
     addTaskPlaceholder: "Type and add task...",
     add: "Add",
     addStageToList: "Add Stage to List",
-    
+
     // AI Integration
     aiSettingsTitle: 'AI Integration',
     aiApiKeyLabel: 'Gemini API Key',
@@ -180,7 +194,7 @@ const dictionaries = {
     aiGenerateAction: 'Generate',
     aiErrorNoKey: 'Please enter your Gemini API key from the Settings page first.',
     aiErrorGeneration: 'An error occurred during planning. Please adjust your prompt and try again.',
-    
+
     // Journey Map (goal/[id].tsx)
     journeyNotFound: "This journey could not be found or has been deleted.",
     goBack: "Go Back",
@@ -220,7 +234,7 @@ const dictionaries = {
     appLanguage: "App Language",
     dailyReminders: "Daily Reminders",
     reminderTime: "Reminder Time",
-    darkMode: "Dark Mode (Soon)",
+    darkMode: "Dark Mode",
     dangerZone: "Danger Zone",
     resetProgress: "Reset All Progress",
     resetDesc: "Permanently deletes all your saved journeys and goals.",
@@ -235,7 +249,7 @@ const dictionaries = {
 
 export function useTranslation() {
   const lang = useSettingsStore(state => state.language) || 'tr';
-  
+
   const t = (key: keyof typeof dictionaries.tr) => {
     return dictionaries[lang][key] || dictionaries['tr'][key] || key;
   };

@@ -10,6 +10,7 @@ import { differenceInDays, addDays, format, isToday, startOfMonth, startOfWeek, 
 import { tr } from 'date-fns/locale';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from '@/lib/i18n';
+import * as Haptics from 'expo-haptics';
 
 const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
@@ -60,8 +61,8 @@ export default function GroupDetailScreen() {
 
   if (!currentGroup || !currentGoal) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-journeyBg dark:bg-[#0F172A]">
-        <Text className="text-journeyMuted dark:text-[#94A3B8] font-light">{t('groupNotFound')}</Text>
+      <SafeAreaView className="flex-1 items-center justify-center bg-journeyBg dark:bg-journeyDarkBg">
+        <Text className="text-journeyMuted dark:text-journeyMuted font-light">{t('groupNotFound')}</Text>
       </SafeAreaView>
     );
   }
@@ -115,7 +116,7 @@ export default function GroupDetailScreen() {
     : format(startDate, 'MMMM yyyy', { locale: tr });
 
   return (
-    <SafeAreaView className="flex-1 bg-journeyBg dark:bg-[#0F172A]">
+    <SafeAreaView className="flex-1 bg-journeyBg dark:bg-journeyDarkBg">
       {/* Soft Header */}
       <View className="px-6 pt-12 pb-4">
         <View className="h-12 flex-row items-center justify-between relative z-10">
@@ -128,7 +129,7 @@ export default function GroupDetailScreen() {
           
           <View className="absolute inset-x-0 h-full items-center justify-center pointer-events-none z-10">
             <Text 
-              className="text-[15px] font-semibold text-journeyText dark:text-[#F8FAFC] tracking-wide text-center px-10" 
+              className="text-[15px] font-semibold text-journeyText dark:text-journeyDarkText tracking-wide text-center px-10" 
               numberOfLines={1}
             >
               {currentGroup.name}
@@ -138,7 +139,7 @@ export default function GroupDetailScreen() {
           <AnimatedTouchableOpacity 
             entering={SlideInRight.springify()}
             onPress={() => setIsCalendarView(!isCalendarView)} 
-            className="w-12 h-12 items-center justify-center -mr-2 bg-journeyCard dark:bg-[#1E293B] border border-journeyBorder/40 dark:border-[#334155]/40 rounded-full shadow-sm z-20"
+            className="w-12 h-12 items-center justify-center -mr-2 bg-journeyCard dark:bg-journeyDarkCard border border-journeyBorder/40 dark:border-journeyDarkBorder/40 rounded-full shadow-sm z-20"
           >
             <Ionicons name={isCalendarView ? "list-outline" : "calendar-outline"} size={22} color="#14B8A6" />
           </AnimatedTouchableOpacity>
@@ -147,7 +148,7 @@ export default function GroupDetailScreen() {
 
       <View className="px-6 mb-2 mt-4">
          <View className="bg-journeyAccent/5 border border-journeyAccent/20 py-3.5 px-5 rounded-[20px] flex-row justify-between items-center">
-            <Text className="text-journeyText dark:text-[#F8FAFC] font-medium text-[13px]">{t('totalStageProgress')}</Text>
+            <Text className="text-journeyText dark:text-journeyDarkText font-medium text-[13px]">{t('totalStageProgress')}</Text>
             <Text className="text-journeyAccent font-bold text-[14px]">%{groupPercentage}</Text>
          </View>
       </View>
@@ -156,10 +157,10 @@ export default function GroupDetailScreen() {
         
         {/* Subtle Intro */}
         <View className="px-8 mt-6 mb-8 items-center">
-          <Text className="text-[11px] text-journeyMuted dark:text-[#94A3B8] uppercase tracking-[3px] font-medium mb-1">
+          <Text className="text-[11px] text-journeyMuted dark:text-journeyMuted uppercase tracking-[3px] font-medium mb-1">
             {t('dailyFlow')}
           </Text>
-          <Text className="text-[26px] font-light text-journeyText dark:text-[#F8FAFC] text-center leading-[32px]">
+          <Text className="text-[26px] font-light text-journeyText dark:text-journeyDarkText text-center leading-[32px]">
             {currentGroup.durationInDays} {t('dayChain')}{`\n`}<Text className="font-semibold text-journeyAccent">{t('break')}</Text>
           </Text>
         </View>
@@ -168,17 +169,17 @@ export default function GroupDetailScreen() {
         <View className="mb-10 w-full">
           {isCalendarView ? (
             <View className="px-6 w-full">
-              <View className="bg-journeyCard dark:bg-[#1E293B] rounded-[32px] border border-journeyBorder/40 dark:border-[#334155]/40 w-full p-4 pb-6">
+              <View className="bg-journeyCard dark:bg-journeyDarkCard rounded-[32px] border border-journeyBorder/40 dark:border-journeyDarkBorder/40 w-full p-4 pb-6">
                 
                 {/* Month Title */}
-                <Text className="text-center font-bold text-journeyText dark:text-[#F8FAFC] text-lg mb-4 capitalize">
+                <Text className="text-center font-bold text-journeyText dark:text-journeyDarkText text-lg mb-4 capitalize">
                    {monthLabel}
                 </Text>
 
                 {/* Days of week header */}
                 <View className="flex-row justify-between mb-3 w-full px-2">
                    {['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].map(w => (
-                     <Text key={w} className="w-[12%] text-center text-[10px] font-bold text-journeyMuted dark:text-[#94A3B8] uppercase">
+                     <Text key={w} className="w-[12%] text-center text-[10px] font-bold text-journeyMuted dark:text-journeyMuted uppercase">
                        {t(w as any)}
                      </Text>
                    ))}
@@ -200,12 +201,12 @@ export default function GroupDetailScreen() {
                            activeOpacity={0.8}
                            className={cn(
                              "w-[12%] aspect-square items-center justify-center rounded-[18px] border",
-                             dayData.isAllCompleted ? "bg-journeyAccent/10 border-journeyAccent/30" : "bg-[#F8FAFC]/50 dark:bg-black/20 border-journeyBorder/30 dark:border-[#334155]/30",
-                             isSelected && !dayData.isAllCompleted && "border-journeyAccent/60 bg-journeyCard dark:bg-[#1E293B]"
+                             dayData.isAllCompleted ? "bg-journeyAccent/10 border-journeyAccent/30" : "bg-[#F8FAFC]/50 dark:bg-black/20 border-journeyBorder/30 dark:border-journeyDarkBorder/30",
+                             isSelected && !dayData.isAllCompleted && "border-journeyAccent/60 bg-journeyCard dark:bg-journeyDarkCard"
                            )}
                          >
                            <View className="flex-1 w-full items-center justify-center">
-                             <Text className={cn("text-[13px] leading-tight", dayData.isAllCompleted ? "text-journeyAccent font-bold" : isSelected ? "text-journeyText dark:text-[#F8FAFC] font-bold" : "text-journeyText dark:text-[#F8FAFC] font-medium")}>
+                             <Text className={cn("text-[13px] leading-tight", dayData.isAllCompleted ? "text-journeyAccent font-bold" : isSelected ? "text-journeyText dark:text-journeyDarkText font-bold" : "text-journeyText dark:text-journeyDarkText font-medium")}>
                                {format(d, 'd')}
                              </Text>
                              {(!dayData.isAllCompleted && dayData.progressPerc > 0) && (
@@ -221,7 +222,7 @@ export default function GroupDetailScreen() {
                        // Passive empty day from the month padding or outside interval
                        return (
                          <View key={i} className="w-[12%] aspect-square items-center justify-center rounded-xl bg-transparent">
-                           <Text className={cn("text-[13px]", isCurrentMonth ? "text-journeyMuted dark:text-[#94A3B8]/40 font-light" : "text-transparent")}>
+                           <Text className={cn("text-[13px]", isCurrentMonth ? "text-journeyMuted dark:text-journeyMuted/40 font-light" : "text-transparent")}>
                               {format(d, 'd')}
                            </Text>
                          </View>
@@ -249,13 +250,13 @@ export default function GroupDetailScreen() {
                     activeOpacity={0.8}
                     className={cn(
                       "w-[46px] h-[76px] rounded-[24px] items-center py-3.5 justify-between border",
-                      day.isAllCompleted ? "bg-journeyAccent/10 border-journeyAccent/20" : "bg-journeyCard dark:bg-[#1E293B] border-journeyBorder/40 dark:border-[#334155]/40",
+                      day.isAllCompleted ? "bg-journeyAccent/10 border-journeyAccent/20" : "bg-journeyCard dark:bg-journeyDarkCard border-journeyBorder/40 dark:border-journeyDarkBorder/40",
                       isSelected && !day.isAllCompleted && "border-journeyAccent/30 bg-[#F0FDF4]/50"
                     )}
                   >
                     <Text className={cn(
                       "text-[10px] uppercase font-medium",
-                      day.isAllCompleted ? "text-journeyAccent" : isSelected ? "text-journeyAccent" : "text-journeyMuted dark:text-[#94A3B8]"
+                      day.isAllCompleted ? "text-journeyAccent" : isSelected ? "text-journeyAccent" : "text-journeyMuted dark:text-journeyMuted"
                     )}>
                       {day.displayWeekday}
                     </Text>
@@ -263,7 +264,7 @@ export default function GroupDetailScreen() {
                     <View className="items-center justify-center">
                       <Text className={cn(
                         "text-[18px] font-light",
-                        day.isAllCompleted ? "text-journeyAccent" : "text-journeyText dark:text-[#F8FAFC]"
+                        day.isAllCompleted ? "text-journeyAccent" : "text-journeyText dark:text-journeyDarkText"
                       )}>
                         {day.displayDay}
                       </Text>
@@ -280,8 +281,8 @@ export default function GroupDetailScreen() {
         </View>
 
         <View className="px-8 mb-6 flex-row items-baseline justify-between mt-2">
-          <Text className="text-journeyText dark:text-[#F8FAFC] text-xl font-medium tracking-tight">{t('todaysTasks')}</Text>
-          <Text className="text-xs text-journeyMuted dark:text-[#94A3B8] font-light">
+          <Text className="text-journeyText dark:text-journeyDarkText text-xl font-medium tracking-tight">{t('todaysTasks')}</Text>
+          <Text className="text-xs text-journeyMuted dark:text-journeyMuted font-light">
             {selectedDayData.progressNum} / {selectedDayData.total} {isLocked ? t('task') : t('completed')}
           </Text>
         </View>
@@ -292,7 +293,7 @@ export default function GroupDetailScreen() {
                <Text className="text-journeyAccent font-bold text-[15px] mb-1">
                  {isLastGroup ? t('goalCompletedTitle') : t('newStageUnlockedTitle')}
                </Text>
-               <Text className="text-journeyText dark:text-[#F8FAFC]/80 text-[13px] leading-snug font-medium">
+               <Text className="text-journeyText dark:text-journeyDarkText/80 text-[13px] leading-snug font-medium">
                  {isLastGroup ? t('goalCompletedDesc') : t('newStageUnlockedDesc')}
                </Text>
              </View>
@@ -301,7 +302,7 @@ export default function GroupDetailScreen() {
 
         {isLocked && (
            <Animated.View entering={FadeInUp.springify()} className="px-6 mb-4">
-             <View className="bg-journeyBorder/20 px-4 py-3.5 rounded-[16px] flex-row items-center border border-journeyBorder/50 dark:border-[#334155]/50">
+             <View className="bg-journeyBorder/20 px-4 py-3.5 rounded-[16px] flex-row items-center border border-journeyBorder/50 dark:border-journeyDarkBorder/50">
                <Ionicons name="lock-closed-outline" size={16} color="#64748B" />
                <Text className="text-[#64748B] text-[13px] ml-2.5 font-normal flex-1 leading-snug">
                  {t('stageLocked')}
@@ -313,25 +314,29 @@ export default function GroupDetailScreen() {
         {/* Delicate Task List */}
         <View className="px-6 space-y-3">
            {currentGroup.tasks.length === 0 && (
-             <Text className="text-center text-journeyMuted dark:text-[#94A3B8] text-[13px] font-light mt-4">{t('noTasksDefined')}</Text>
+             <Text className="text-center text-journeyMuted dark:text-journeyMuted text-[13px] font-light mt-4">{t('noTasksDefined')}</Text>
            )}
            {currentGroup.tasks.map((task, index) => {
              const isTaskDone = currentGroup.progress[selectedDayData.dateStr]?.[task.id] || false;
              
              return (
-               <AnimatedTouchableOpacity 
+               <AnimatedTouchableOpacity
                  entering={FadeInDown.delay(index * 70).springify()}
                  key={task.id}
                 activeOpacity={isLocked ? 1 : 0.7}
                 onPress={() => {
                   if (!isLocked) {
+                    const willComplete = !isTaskDone;
                     toggleTask(currentGoal.id, currentGroup.id, selectedDayData.dateStr, task.id);
+                    if (willComplete) {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    }
                   }
                 }}
                 className={cn(
                   "flex-row items-center p-4 rounded-[28px]",
-                  isLocked ? "bg-journeyCard dark:bg-[#1E293B]/40 border border-transparent" : 
-                  isTaskDone ? "bg-journeyBg dark:bg-[#0F172A] border border-journeyBorder/20 dark:border-[#334155]/20 mb-3" : "bg-journeyCard dark:bg-[#1E293B] border border-journeyBorder/40 dark:border-[#334155]/40 mb-3"
+                  isLocked ? "bg-journeyCard dark:bg-journeyDarkCard/40 border border-transparent" : 
+                  isTaskDone ? "bg-journeyBg dark:bg-journeyDarkBg border border-journeyBorder/20 dark:border-journeyDarkBorder/20 mb-3" : "bg-journeyCard dark:bg-journeyDarkCard border border-journeyBorder/40 dark:border-journeyDarkBorder/40 mb-3"
                 )}
               >
                 <View className={cn(
@@ -343,7 +348,7 @@ export default function GroupDetailScreen() {
                 </View>
                 <Text className={cn(
                   "text-[15px] flex-1",
-                  isTaskDone ? "text-journeyMuted dark:text-[#94A3B8]/60 font-normal" : "text-journeyText dark:text-[#F8FAFC] font-normal"
+                  isTaskDone ? "text-journeyMuted dark:text-journeyMuted/60 font-normal" : "text-journeyText dark:text-journeyDarkText font-normal"
                 )}>
                   {task.name}
                 </Text>

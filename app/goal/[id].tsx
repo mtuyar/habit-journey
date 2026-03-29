@@ -25,9 +25,9 @@ export default function GoalMapScreen() { // Changed component name
 
   if (!activeGoal) {
     return (
-      <View className="flex-1 items-center justify-center bg-journeyBg dark:bg-[#0F172A] px-8"> {/* Changed to View, added px-8 */}
-        <Ionicons name="alert-circle-outline" size={48} color="#94A3B8" className="mb-4" /> {/* Added icon */}
-        <Text className="text-journeyMuted dark:text-[#94A3B8] text-sm font-normal text-center mb-8">{t('journeyNotFound')}</Text> {/* Used t() and updated classNames */}
+      <View className="flex-1 items-center justify-center bg-journeyBg dark:bg-journeyDarkBg px-8"> {/* Changed to View, added px-8 */}
+        <Ionicons name="alert-circle-outline" size={48} color="#5F8B8A" className="mb-4" /> {/* Added icon */}
+        <Text className="text-journeyMuted dark:text-journeyMuted text-sm font-normal text-center mb-8">{t('journeyNotFound')}</Text> {/* Used t() and updated classNames */}
         <TouchableOpacity 
           activeOpacity={0.8}
           onPress={() => router.back()} // Changed to router.back()
@@ -79,14 +79,14 @@ export default function GoalMapScreen() { // Changed component name
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-journeyBg dark:bg-[#0F172A]">
+    <SafeAreaView className="flex-1 bg-journeyBg dark:bg-journeyDarkBg">
        {/* Soft Minimalist Top Header */}
        <View className="px-6 pt-4 pb-2 flex-row items-center">
          <TouchableOpacity 
            onPress={() => router.back()} // Changed to router.back()
            className="w-10 h-10 items-center justify-center -ml-2 mr-2"
          >
-           <Ionicons name="chevron-back" size={24} color="#94A3B8" />
+           <Ionicons name="chevron-back" size={24} color="#5F8B8A" />
          </TouchableOpacity>
          
          {isEditingName ? (
@@ -95,7 +95,7 @@ export default function GoalMapScreen() { // Changed component name
                 value={editNameValue}
                 onChangeText={setEditNameValue}
                 autoFocus
-                className="flex-1 text-[24px] text-journeyText dark:text-[#F8FAFC] font-semibold tracking-tight border-b border-journeyAccent/30 pb-1 bg-transparent"
+                className="flex-1 text-[24px] text-journeyText dark:text-journeyDarkText font-semibold tracking-tight border-b border-journeyAccent/30 pb-1 bg-transparent"
                 onSubmitEditing={handleEditSave}
               />
               <TouchableOpacity onPress={handleEditSave} className="ml-4 bg-journeyAccent/10 px-4 py-2 rounded-[14px]">
@@ -104,15 +104,15 @@ export default function GoalMapScreen() { // Changed component name
            </View>
          ) : (
            <View className="flex-1 flex-row items-center justify-between pr-2">
-             <Text className="flex-1 text-[24px] text-journeyText dark:text-[#F8FAFC] font-semibold tracking-tight leading-[30px]" numberOfLines={2}>
+             <Text className="flex-1 text-[24px] text-journeyText dark:text-journeyDarkText font-semibold tracking-tight leading-[30px]" numberOfLines={2}>
                {activeGoal.name}
              </Text>
              <View className="flex-row gap-1 ml-2">
                <TouchableOpacity onPress={handleEditStart} className="w-8 h-8 items-center justify-center rounded-full" activeOpacity={0.6}>
-                 <Ionicons name="pencil-outline" size={16} color="#94A3B8" />
+                 <Ionicons name="pencil-outline" size={16} color="#5F8B8A" />
                </TouchableOpacity>
                <TouchableOpacity onPress={handleDetailedEdit} className="w-8 h-8 items-center justify-center rounded-full" activeOpacity={0.6}>
-                 <Ionicons name="settings-outline" size={16} color="#64748B" />
+                 <Ionicons name="settings-outline" size={16} color="#5F8B8A" />
                </TouchableOpacity>
                <TouchableOpacity onPress={confirmDelete} className="w-8 h-8 items-center justify-center rounded-full" activeOpacity={0.6}>
                  <Ionicons name="trash-outline" size={16} color="#EF4444" />
@@ -123,7 +123,7 @@ export default function GoalMapScreen() { // Changed component name
        </View>
 
        <View className="px-8 mb-4">
-         <Text className="text-journeyMuted dark:text-[#94A3B8] text-xs font-medium uppercase tracking-[2px] mt-2">Hedef Haritası</Text>
+         <Text className="text-journeyMuted dark:text-journeyMuted text-xs font-medium uppercase tracking-[2px] mt-2">Hedef Haritası</Text>
        </View>
 
        {/* Map List */}

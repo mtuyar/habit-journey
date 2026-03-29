@@ -6,12 +6,20 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        journeyBg: '#FAFAFA',
-        journeyAccent: '#14B8A6', // Teal 500
-        journeyText: '#334155', // Slate 700 
-        journeyMuted: '#94A3B8', // Slate 400
-        journeyBorder: '#F1F5F9', // Slate 100
-        journeyCard: '#FFFFFF', // White backgrounds
+        // Light mode
+        journeyBg: '#F0FDFA',       // Teal 50 — warm, breathing base
+        journeyAccent: '#0D9488',   // Teal 600 — richer, more premium
+        journeyText: '#134E4A',     // Teal 950 — cohesive dark text
+        journeyMuted: '#5F8B8A',    // Muted teal
+        journeyBorder: '#B2F0E8',   // Teal 200 — visible but soft
+        journeyCard: '#FFFFFF',     // Clean white
+        journeyGold: '#F59E0B',     // Amber — streak & achievements
+        journeySuccess: '#059669',  // Emerald — completed states
+        // Dark mode
+        journeyDarkBg: '#021a19',
+        journeyDarkCard: '#0a2c2a',
+        journeyDarkBorder: '#134e4a',
+        journeyDarkText: '#CCFBF1',
       }
     },
   },

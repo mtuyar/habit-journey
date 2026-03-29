@@ -156,7 +156,7 @@ export default function CreateGoalScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-journeyBg dark:bg-[#0F172A]" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-journeyBg dark:bg-journeyDarkBg" edges={['top']}>
       <KeyboardAvoidingView 
         style={{ flex: 1 }} 
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -169,7 +169,7 @@ export default function CreateGoalScreen() {
           >
              <Ionicons name="close-outline" size={28} color="#94A3B8" />
           </TouchableOpacity>
-          <Text className="text-[11px] text-journeyMuted dark:text-[#94A3B8] font-medium uppercase tracking-[3px]">
+          <Text className="text-[11px] text-journeyMuted dark:text-journeyMuted font-medium uppercase tracking-[3px]">
             {editingGoal ? t('editJourney') : t('planning')}
           </Text>
           <View className="w-10 h-10" />
@@ -181,7 +181,7 @@ export default function CreateGoalScreen() {
           keyboardShouldPersistTaps="handled" 
         >
           
-          <Text className="text-2xl font-light text-journeyText dark:text-[#F8FAFC] tracking-tight mb-8">
+          <Text className="text-2xl font-light text-journeyText dark:text-journeyDarkText tracking-tight mb-8">
             {editingGoal ? `${t('yourJourney')}\n` : `${t('cleanSlate')} `} 
             <Text className="font-medium">{editingGoal ? t('improve') : t('openPage')}</Text>
           </Text>
@@ -190,9 +190,9 @@ export default function CreateGoalScreen() {
             <TouchableOpacity 
               activeOpacity={0.8}
               onPress={() => setIsAiModalOpen(true)}
-              className="flex-row items-center bg-[#F0FDF4] dark:bg-[#1E293B] border border-[#14B8A6]/30 dark:border-[#14B8A6]/40 p-5 rounded-[24px] mb-8 shadow-sm flex-none"
+              className="flex-row items-center bg-[#F0FDF4] dark:bg-journeyDarkCard border border-[#14B8A6]/30 dark:border-[#14B8A6]/40 p-5 rounded-[24px] mb-8 shadow-sm flex-none"
             >
-              <View className="w-12 h-12 bg-white dark:bg-[#0F172A] rounded-[16px] items-center justify-center mr-4 border border-[#14B8A6]/20 shadow-[0_4px_12px_rgba(20,184,166,0.15)]">
+              <View className="w-12 h-12 bg-white dark:bg-journeyDarkBg rounded-[16px] items-center justify-center mr-4 border border-[#14B8A6]/20 shadow-[0_4px_12px_rgba(20,184,166,0.15)]">
                 <Ionicons name="sparkles" size={22} color="#14B8A6" />
               </View>
               <View className="flex-1">
@@ -207,7 +207,7 @@ export default function CreateGoalScreen() {
 
           <View className="mb-10">
             <TextInput
-              className="border-b border-journeyBorder/40 dark:border-[#334155]/40 py-3 text-[22px] font-semibold tracking-tight text-journeyText dark:text-[#F8FAFC]"
+              className="border-b border-journeyBorder/40 dark:border-journeyDarkBorder/40 py-3 text-[22px] font-semibold tracking-tight text-journeyText dark:text-journeyDarkText"
               placeholder={t('journeySubject')}
               placeholderTextColor="#94A3B8"
               value={name}
@@ -217,12 +217,12 @@ export default function CreateGoalScreen() {
 
           {groups.length > 0 && (
             <View className="mb-10">
-              <Text className="text-xs font-semibold text-journeyMuted dark:text-[#94A3B8] uppercase tracking-widest mb-4">{t('currentStages')}</Text>
+              <Text className="text-xs font-semibold text-journeyMuted dark:text-journeyMuted uppercase tracking-widest mb-4">{t('currentStages')}</Text>
               {groups.map((g, i) => (
-                <View key={i} className="flex-row justify-between items-center py-4 border-b border-journeyBorder/30 dark:border-[#334155]/30">
+                <View key={i} className="flex-row justify-between items-center py-4 border-b border-journeyBorder/30 dark:border-journeyDarkBorder/30">
                    <View className="flex-1 mr-4">
-                     <Text className="text-[16px] font-semibold text-journeyText dark:text-[#F8FAFC] mb-1">{g.name}</Text>
-                     <Text className="text-[11px] font-medium text-journeyMuted dark:text-[#94A3B8] uppercase">{g.durationInDays} {t('days')}</Text>
+                     <Text className="text-[16px] font-semibold text-journeyText dark:text-journeyDarkText mb-1">{g.name}</Text>
+                     <Text className="text-[11px] font-medium text-journeyMuted dark:text-journeyMuted uppercase">{g.durationInDays} {t('days')}</Text>
                    </View>
                    <View className="flex-row gap-4">
                      <TouchableOpacity onPress={() => handleEditExistingGroup(i)}>
@@ -237,18 +237,18 @@ export default function CreateGoalScreen() {
             </View>
           )}
 
-          <View className="bg-journeyCard dark:bg-[#1E293B] border rounded-[32px] border-journeyBorder/40 dark:border-[#334155]/40 p-6">
-            <Text className="text-sm font-semibold text-journeyText dark:text-[#F8FAFC] tracking-tight mb-4">{t('newStageStop')}</Text>
+          <View className="bg-journeyCard dark:bg-journeyDarkCard border rounded-[32px] border-journeyBorder/40 dark:border-journeyDarkBorder/40 p-6">
+            <Text className="text-sm font-semibold text-journeyText dark:text-journeyDarkText tracking-tight mb-4">{t('newStageStop')}</Text>
             
             <TextInput
-              className="border-b border-journeyBorder/40 dark:border-[#334155]/40 py-3 text-[15px] font-medium text-journeyText dark:text-[#F8FAFC] mb-4"
+              className="border-b border-journeyBorder/40 dark:border-journeyDarkBorder/40 py-3 text-[15px] font-medium text-journeyText dark:text-journeyDarkText mb-4"
               placeholder={t('stageNamePlaceholder')}
               placeholderTextColor="#94A3B8"
               value={groupName}
               onChangeText={setGroupName}
             />
             <TextInput
-              className="border-b border-journeyBorder/40 dark:border-[#334155]/40 py-3 text-[15px] font-medium text-journeyText dark:text-[#F8FAFC] mb-6"
+              className="border-b border-journeyBorder/40 dark:border-journeyDarkBorder/40 py-3 text-[15px] font-medium text-journeyText dark:text-journeyDarkText mb-6"
               placeholder={t('requiredDurationPlaceholder')}
               placeholderTextColor="#94A3B8"
               keyboardType="numeric"
@@ -259,19 +259,19 @@ export default function CreateGoalScreen() {
             <View className="mb-6 mt-2">
                <Text className="text-[11px] font-bold text-[#64748B] uppercase tracking-[2px] mb-4">{t('dailyTasks')}</Text>
                {tasks.map((t, idx) => (
-                 <View key={idx} className="flex-row items-center justify-between mb-3 bg-[#F8FAFC] p-3 rounded-xl border border-journeyBorder/20 dark:border-[#334155]/20">
+                 <View key={idx} className="flex-row items-center justify-between mb-3 bg-[#F8FAFC] p-3 rounded-xl border border-journeyBorder/20 dark:border-journeyDarkBorder/20">
                    <View className="flex-row items-center flex-1">
                      <View className="w-1.5 h-1.5 rounded-full bg-journeyAccent/50 mr-3" />
-                     <Text className="text-[13px] text-journeyText dark:text-[#F8FAFC] font-medium" numberOfLines={2}>{t}</Text>
+                     <Text className="text-[13px] text-journeyText dark:text-journeyDarkText font-medium" numberOfLines={2}>{t}</Text>
                    </View>
                    <TouchableOpacity onPress={() => handleRemoveTask(idx)} className="ml-2 px-2 py-1">
                      <Ionicons name="close" size={16} color="#94A3B8" />
                    </TouchableOpacity>
                  </View>
                ))}
-               <View className="flex-row items-center mt-2 border-b border-journeyBorder/40 dark:border-[#334155]/40 pb-2">
+               <View className="flex-row items-center mt-2 border-b border-journeyBorder/40 dark:border-journeyDarkBorder/40 pb-2">
                  <TextInput
-                   className="flex-1 py-2 text-[13px] font-medium text-journeyText dark:text-[#F8FAFC]"
+                   className="flex-1 py-2 text-[13px] font-medium text-journeyText dark:text-journeyDarkText"
                    placeholder={t('addTaskPlaceholder')}
                    placeholderTextColor="#94A3B8"
                    value={currentTask}
@@ -289,9 +289,9 @@ export default function CreateGoalScreen() {
             <TouchableOpacity 
                onPress={handleAddGroup}
                activeOpacity={0.8}
-               className="bg-[#F8FAFC] dark:bg-[#0F172A] border border-journeyBorder/40 dark:border-[#334155]/40 rounded-[24px] py-4 items-center justify-center mt-2"
+               className="bg-[#F8FAFC] dark:bg-journeyDarkBg border border-journeyBorder/40 dark:border-journeyDarkBorder/40 rounded-[24px] py-4 items-center justify-center mt-2"
             >
-               <Text className="text-journeyText dark:text-[#F8FAFC] text-[13px] font-bold">{t('addStageToList')}</Text>
+               <Text className="text-journeyText dark:text-journeyDarkText text-[13px] font-bold">{t('addStageToList')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -326,14 +326,14 @@ export default function CreateGoalScreen() {
             keyboardVerticalOffset={Platform.OS === "ios" ? 40 : 20}
             className="w-full"
           >
-            <Animated.View entering={FadeInDown.springify().damping(14)} className="bg-white dark:bg-[#0F172A] w-full pt-6 pb-14 px-6 rounded-t-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.15)] border-t border-journeyBorder/40 dark:border-[#334155]/40 mt-auto">
+            <Animated.View entering={FadeInDown.springify().damping(14)} className="bg-white dark:bg-journeyDarkBg w-full pt-6 pb-14 px-6 rounded-t-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.15)] border-t border-journeyBorder/40 dark:border-journeyDarkBorder/40 mt-auto">
               <View className="flex-row items-center justify-between mb-5">
                  <View className="flex-row items-center">
                    <Ionicons name="sparkles" size={24} color="#14B8A6" />
-                   <Text className="text-[19px] font-extrabold text-journeyText dark:text-[#F8FAFC] ml-2 tracking-tight">{t('aiModalTitle')}</Text>
+                   <Text className="text-[19px] font-extrabold text-journeyText dark:text-journeyDarkText ml-2 tracking-tight">{t('aiModalTitle')}</Text>
                  </View>
                  {!isGenerating && (
-                   <TouchableOpacity onPress={() => setIsAiModalOpen(false)} className="p-2 -mr-2 bg-[#F8FAFC] dark:bg-[#1E293B] rounded-full">
+                   <TouchableOpacity onPress={() => setIsAiModalOpen(false)} className="p-2 -mr-2 bg-[#F8FAFC] dark:bg-journeyDarkCard rounded-full">
                      <Ionicons name="close" size={20} color="#94A3B8" />
                    </TouchableOpacity>
                  )}
@@ -347,7 +347,7 @@ export default function CreateGoalScreen() {
                 onChangeText={setAiPrompt}
                 placeholder={t('aiModalPromptPlaceholder')}
                 placeholderTextColor="#94A3B8"
-                className="bg-[#F8FAFC] dark:bg-[#1E293B] border border-journeyBorder/50 dark:border-[#334155]/50 rounded-2xl p-5 h-40 text-[15px] font-medium text-journeyText dark:text-[#F8FAFC] flex-col justify-start"
+                className="bg-[#F8FAFC] dark:bg-journeyDarkCard border border-journeyBorder/50 dark:border-journeyDarkBorder/50 rounded-2xl p-5 h-40 text-[15px] font-medium text-journeyText dark:text-journeyDarkText flex-col justify-start"
                 style={{ textAlignVertical: 'top' }}
               />
 
