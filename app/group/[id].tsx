@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { Text } from '@/components/ui/Text';
 import Animated, { FadeInDown, FadeInUp, SlideInRight } from 'react-native-reanimated';
@@ -23,6 +23,8 @@ export default function GroupDetailScreen() {
 
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
   const [isCalendarView, setIsCalendarView] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const celebratedDays = useRef<Set<string>>(new Set());
 
   let currentGoal = null;
   let currentGroup = null;
@@ -104,6 +106,19 @@ export default function GroupDetailScreen() {
   });
 
   const selectedDayData = days[selectedDayIndex];
+
+  // Completion celebration effect
+  useEffect(() => {
+    if (!selectedDayData || isLocked) return;
+    const allDone = selectedDayData.total > 0 && selectedDayData.progressNum === selectedDayData.total;
+    if (allDone && !celebratedDays.current.has(selectedDayData.dateStr)) {
+      celebratedDays.current.add(selectedDayData.dateStr);
+      setShowCelebration(true);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      const timer = setTimeout(() => setShowCelebration(false), 2400);
+      return () => clearTimeout(timer);
+    }
+  }, [selectedDayData?.progressNum]);
 
   // Logic for the full month Grid calendar view
   let calendarStart = startOfWeek(startOfMonth(startDate), { weekStartsOn: 1 });
@@ -358,6 +373,30 @@ export default function GroupDetailScreen() {
         </View>
 
       </ScrollView>
+
+      {/* Completion Celebration Overlay */}
+      {showCelebration && (
+        <Animated.View
+          entering={FadeInUp.springify()}
+          className="absolute inset-0 items-center justify-center"
+          pointerEvents="none"
+          style={{ backgroundColor: 'rgba(13,148,136,0.12)' }}
+        >
+          <Animated.View
+            entering={FadeInDown.springify().damping(12)}
+            className="bg-white dark:bg-journeyDarkCard rounded-[32px] px-10 py-8 items-center mx-8"
+            style={{ shadowColor: '#0D9488', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.15, shadowRadius: 24, elevation: 12 }}
+          >
+            <Text style={{ fontSize: 56, marginBottom: 12 }}>🎉</Text>
+            <Text className="text-journeyText dark:text-journeyDarkText text-[20px] font-bold text-center mb-2">
+              {t('celebrationTitle')}
+            </Text>
+            <Text className="text-journeyMuted text-[14px] text-center leading-snug">
+              {t('celebrationDesc')}
+            </Text>
+          </Animated.View>
+        </Animated.View>
+      )}
     </SafeAreaView>
   );
 }

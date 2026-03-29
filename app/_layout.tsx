@@ -24,6 +24,7 @@ export default function RootLayout() {
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#F0FDFA' } }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="onboarding" />
+        <Stack.Screen name="insights" />
         <Stack.Screen name="settings" />
         <Stack.Screen name="create" options={{ presentation: 'modal' }} />
         <Stack.Screen name="group/[id]" />

@@ -3,7 +3,7 @@ import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { Text } from '@/components/ui/Text';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useProgressStore, Goal, computeStreak, getTodayProgress } from '@/store/useProgressStore';
+import { useProgressStore, Goal, computeStreak, getTodayProgress, getThisWeekStats } from '@/store/useProgressStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
 import { useTranslation } from '@/lib/i18n';
 import { router, Redirect } from 'expo-router';
@@ -164,6 +164,7 @@ export default function HomeDashboardScreen() {
   }
 
   const streak = computeStreak(goals);
+  const { activeDays, elapsed } = getThisWeekStats(goals);
 
   if (goals.length === 0) {
     return (
@@ -234,6 +235,13 @@ export default function HomeDashboardScreen() {
           )}
 
           <TouchableOpacity
+            onPress={() => router.push('/insights')}
+            className="w-11 h-11 bg-journeyCard dark:bg-journeyDarkCard border border-journeyBorder dark:border-journeyDarkBorder rounded-full items-center justify-center"
+          >
+            <Ionicons name="bar-chart-outline" size={19} color="#5F8B8A" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
             onPress={() => router.push('/settings')}
             className="w-11 h-11 bg-journeyCard dark:bg-journeyDarkCard border border-journeyBorder dark:border-journeyDarkBorder rounded-full items-center justify-center"
           >
@@ -249,9 +257,15 @@ export default function HomeDashboardScreen() {
         </View>
       </Animated.View>
 
-      {/* Quote */}
-      <Animated.View entering={FadeInDown.delay(100).springify()} className="px-6 mb-4">
-        <Text className="text-journeyMuted text-[12px] italic leading-snug">"{quote}"</Text>
+      {/* Quote + weekly pill */}
+      <Animated.View entering={FadeInDown.delay(100).springify()} className="px-6 mb-4 flex-row items-center justify-between">
+        <Text className="text-journeyMuted text-[12px] italic leading-snug flex-1 mr-3" numberOfLines={2}>"{quote}"</Text>
+        {elapsed > 0 && (
+          <View className="flex-row items-center bg-journeyBorder/60 px-2.5 py-1.5 rounded-full">
+            <Text className="text-journeyAccent text-[11px] font-bold">{activeDays}/{elapsed}</Text>
+            <Text className="text-journeyMuted text-[10px] ml-1">{t('activeDaysLabel')}</Text>
+          </View>
+        )}
       </Animated.View>
 
       <ScrollView

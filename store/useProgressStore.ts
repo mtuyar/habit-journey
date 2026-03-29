@@ -145,6 +145,111 @@ export const useProgressStore = create<ProgressState>()(
 
 // ── Pure helper functions ──────────────────────────────────────────────────
 
+/** Total completed task instances across all goals. */
+export function getTotalCompletedTasks(goals: Goal[]): number {
+  let total = 0;
+  for (const goal of goals) {
+    for (const group of goal.groups) {
+      for (const dayRecord of Object.values(group.progress)) {
+        for (const done of Object.values(dayRecord)) {
+          if (done) total++;
+        }
+      }
+    }
+  }
+  return total;
+}
+
+/** Overall completion rate across all non-locked groups (0–100). */
+export function getOverallCompletionRate(goals: Goal[]): number {
+  let completed = 0;
+  let total = 0;
+  for (const goal of goals) {
+    for (const group of goal.groups) {
+      if (group.status === 'locked') continue;
+      total += group.durationInDays * group.tasks.length;
+      for (const dayRecord of Object.values(group.progress)) {
+        for (const done of Object.values(dayRecord)) {
+          if (done) completed++;
+        }
+      }
+    }
+  }
+  return total === 0 ? 0 : Math.round((completed / total) * 100);
+}
+
+/** All-time best streak (longest consecutive active days ever). */
+export function getBestStreak(goals: Goal[]): number {
+  const activeDates = new Set<string>();
+  for (const goal of goals) {
+    for (const group of goal.groups) {
+      for (const [date, dayRecord] of Object.entries(group.progress)) {
+        if (Object.values(dayRecord).some(v => v)) activeDates.add(date);
+      }
+    }
+  }
+  if (activeDates.size === 0) return 0;
+
+  const sorted = Array.from(activeDates).sort();
+  let best = 1;
+  let cur = 1;
+  for (let i = 1; i < sorted.length; i++) {
+    const diff = (new Date(sorted[i]).getTime() - new Date(sorted[i - 1]).getTime()) / 86400000;
+    if (diff === 1) { cur++; best = Math.max(best, cur); }
+    else cur = 1;
+  }
+  return best;
+}
+
+/** Active days this week (Mon–today) and days elapsed. */
+export function getThisWeekStats(goals: Goal[]): { activeDays: number; elapsed: number } {
+  const today = new Date();
+  const dayOfWeek = today.getDay();
+  const elapsed = dayOfWeek === 0 ? 7 : dayOfWeek;
+  let activeDays = 0;
+  for (let i = 0; i < elapsed; i++) {
+    const date = format(addDays(today, -i), 'yyyy-MM-dd');
+    outer: for (const goal of goals) {
+      for (const group of goal.groups) {
+        if (group.status === 'locked') continue;
+        const rec = group.progress[date];
+        if (rec && Object.values(rec).some(v => v)) { activeDays++; break outer; }
+      }
+    }
+  }
+  return { activeDays, elapsed };
+}
+
+/** Activity heatmap data for the last `weeks` weeks (oldest → newest). */
+export function getActivityHeatmap(goals: Goal[], weeks = 16): { date: string; level: 0 | 1 | 2 | 3 }[] {
+  const today = new Date();
+  const result: { date: string; level: 0 | 1 | 2 | 3 }[] = [];
+  for (let i = weeks * 7 - 1; i >= 0; i--) {
+    const date = format(addDays(today, -i), 'yyyy-MM-dd');
+    let completed = 0;
+    let total = 0;
+    for (const goal of goals) {
+      for (const group of goal.groups) {
+        if (!group.startDate || group.status === 'locked') continue;
+        const start = new Date(group.startDate);
+        const end = addDays(start, group.durationInDays - 1);
+        const d = new Date(date);
+        if (d < start || d > end) continue;
+        total += group.tasks.length;
+        const rec = group.progress[date] || {};
+        group.tasks.forEach(t => { if (rec[t.id]) completed++; });
+      }
+    }
+    let level: 0 | 1 | 2 | 3 = 0;
+    if (total > 0) {
+      const p = completed / total;
+      level = p >= 0.9 ? 3 : p >= 0.5 ? 2 : 1;
+    }
+    result.push({ date, level });
+  }
+  return result;
+}
+
 /** Returns the number of consecutive days where at least one task was done. */
 export function computeStreak(goals: Goal[]): number {
   const today = new Date();
