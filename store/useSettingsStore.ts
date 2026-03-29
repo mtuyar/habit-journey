@@ -23,6 +23,9 @@ interface SettingsState {
 
   geminiApiKey: string;
   setGeminiApiKey: (key: string) => void;
+
+  hasCompletedOnboarding: boolean;
+  completeOnboarding: () => void;
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -58,6 +61,9 @@ export const useSettingsStore = create<SettingsState>()(
 
       geminiApiKey: '',
       setGeminiApiKey: (key) => set({ geminiApiKey: key }),
+
+      hasCompletedOnboarding: false,
+      completeOnboarding: () => set({ hasCompletedOnboarding: true }),
     }),
     {
       name: 'habit-journey-settings-storage',
