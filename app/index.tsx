@@ -4,8 +4,9 @@ import { Text } from '@/components/ui/Text';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useProgressStore, Goal, computeStreak, getTodayProgress } from '@/store/useProgressStore';
+import { useSettingsStore } from '@/store/useSettingsStore';
 import { useTranslation } from '@/lib/i18n';
-import { router } from 'expo-router';
+import { router, Redirect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { getRandomQuote } from '@/lib/quotes';
 
@@ -152,10 +153,15 @@ function GoalCard({ goal, index }: { goal: Goal; index: number }) {
 
 export default function HomeDashboardScreen() {
   const goals = useProgressStore(state => state.goals);
+  const hasCompletedOnboarding = useSettingsStore(state => state.hasCompletedOnboarding);
   const { t } = useTranslation();
   const [quote, setQuote] = useState('');
 
   useEffect(() => { setQuote(getRandomQuote()); }, []);
+
+  if (!hasCompletedOnboarding) {
+    return <Redirect href="/onboarding" />;
+  }
 
   const streak = computeStreak(goals);
 
