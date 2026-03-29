@@ -1,26 +1,34 @@
-import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DefaultTheme } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
+import { useSettingsStore } from '@/store/useSettingsStore';
+import { useColorScheme } from 'nativewind';
 import 'react-native-reanimated';
 import './global.css';
 
-const MyTheme = {
-  ...DefaultTheme,
-  colors: {
-    ...DefaultTheme.colors,
-    background: '#FDFBF7', // journeyBg
-  },
-};
+function ThemeController() {
+  const isDarkMode = useSettingsStore(state => state.isDarkMode);
+  const { setColorScheme } = useColorScheme();
+
+  useEffect(() => {
+    setColorScheme(isDarkMode ? 'dark' : 'light');
+  }, [isDarkMode, setColorScheme]);
+
+  return <StatusBar style={isDarkMode ? "light" : "dark"} />;
+}
 
 export default function RootLayout() {
   return (
-    <ThemeProvider value={MyTheme}>
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#FDFBF7' } }}>
+    <>
+      <ThemeController />
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#FAFAFA' } }}>
         <Stack.Screen name="index" />
+        <Stack.Screen name="settings" />
         <Stack.Screen name="create" options={{ presentation: 'modal' }} />
         <Stack.Screen name="group/[id]" />
+        <Stack.Screen name="goal/[id]" />
       </Stack>
-      <StatusBar style="dark" />
-    </ThemeProvider>
+    </>
   );
 }

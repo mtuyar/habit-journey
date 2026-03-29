@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Alert, TextInput } from 'react-native';
+import { View, ScrollView, TouchableOpacity, Alert, TextInput } from 'react-native';
+import { Text } from '@/components/ui/Text';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useProgressStore } from '@/store/useProgressStore';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useSettingsStore } from '@/store/useSettingsStore'; // Added import
+import { router, useLocalSearchParams, useRouter } from 'expo-router'; // Added useRouter
 import { Ionicons } from '@expo/vector-icons';
 import { JourneyNode } from '@/components/JourneyNode';
+import { useTranslation } from '@/lib/i18n'; // Added import
 
-export default function GoalJourneyScreen() {
+export default function GoalMapScreen() { // Changed component name
   const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter(); // Added useRouter hook
+  const { t } = useTranslation(); // Added useTranslation hook
   
   const goals = useProgressStore(state => state.goals);
   const deleteGoal = useProgressStore(state => state.deleteGoal);
@@ -20,18 +25,19 @@ export default function GoalJourneyScreen() {
 
   if (!activeGoal) {
     return (
-      <SafeAreaView className="flex-1 justify-center items-center bg-journeyBg px-8">
-        <Text className="text-journeyMuted text-sm font-normal text-center mb-8">Bu yolculuk bulunamadı veya silinmiş.</Text>
+      <View className="flex-1 items-center justify-center bg-journeyBg dark:bg-[#0F172A] px-8"> {/* Changed to View, added px-8 */}
+        <Ionicons name="alert-circle-outline" size={48} color="#94A3B8" className="mb-4" /> {/* Added icon */}
+        <Text className="text-journeyMuted dark:text-[#94A3B8] text-sm font-normal text-center mb-8">{t('journeyNotFound')}</Text> {/* Used t() and updated classNames */}
         <TouchableOpacity 
           activeOpacity={0.8}
-          onPress={() => router.replace('/')}
+          onPress={() => router.back()} // Changed to router.back()
           className="bg-journeyAccent px-8 py-4 rounded-[24px] shadow-sm"
         >
           <Text className="text-white font-semibold flex-row items-center">
-             Geri Dön
+             {t('goBack')} {/* Used t() */}
           </Text>
         </TouchableOpacity>
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -47,19 +53,22 @@ export default function GoalJourneyScreen() {
     setIsEditingName(false);
   };
 
+  // New handleDelete function for actual deletion
   const handleDelete = () => {
+    router.replace('/');
+    setTimeout(() => deleteGoal(activeGoal.id), 100);
+  };
+
+  const confirmDelete = () => { // Renamed original handleDelete to confirmDelete
     Alert.alert(
-      "Yolculuğu Sil",
-      "Bu yolculuğu tamamen silmek istediğine emin misin? Tüm verilerin ve ilerlemen kaybolacak.",
+      t('deleteJourneyTitle'), // Used t()
+      t('deleteJourneyDesc'), // Used t()
       [
-        { text: "Vazgeç", style: "cancel" },
+        { text: t('cancel'), style: "cancel" }, // Used t()
         { 
-          text: "Sil", 
+          text: t('delete'), // Used t()
           style: "destructive", 
-          onPress: () => {
-            router.replace('/');
-            setTimeout(() => deleteGoal(activeGoal.id), 100);
-          }
+          onPress: handleDelete // Calls the new handleDelete
         }
       ]
     );
@@ -70,11 +79,11 @@ export default function GoalJourneyScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-journeyBg">
+    <SafeAreaView className="flex-1 bg-journeyBg dark:bg-[#0F172A]">
        {/* Soft Minimalist Top Header */}
        <View className="px-6 pt-4 pb-2 flex-row items-center">
          <TouchableOpacity 
-           onPress={() => router.replace('/')} 
+           onPress={() => router.back()} // Changed to router.back()
            className="w-10 h-10 items-center justify-center -ml-2 mr-2"
          >
            <Ionicons name="chevron-back" size={24} color="#94A3B8" />
@@ -86,7 +95,7 @@ export default function GoalJourneyScreen() {
                 value={editNameValue}
                 onChangeText={setEditNameValue}
                 autoFocus
-                className="flex-1 text-[24px] text-journeyText font-semibold tracking-tight border-b border-journeyAccent/30 pb-1 bg-transparent"
+                className="flex-1 text-[24px] text-journeyText dark:text-[#F8FAFC] font-semibold tracking-tight border-b border-journeyAccent/30 pb-1 bg-transparent"
                 onSubmitEditing={handleEditSave}
               />
               <TouchableOpacity onPress={handleEditSave} className="ml-4 bg-journeyAccent/10 px-4 py-2 rounded-[14px]">
@@ -95,7 +104,7 @@ export default function GoalJourneyScreen() {
            </View>
          ) : (
            <View className="flex-1 flex-row items-center justify-between pr-2">
-             <Text className="flex-1 text-[24px] text-journeyText font-semibold tracking-tight leading-[30px]" numberOfLines={2}>
+             <Text className="flex-1 text-[24px] text-journeyText dark:text-[#F8FAFC] font-semibold tracking-tight leading-[30px]" numberOfLines={2}>
                {activeGoal.name}
              </Text>
              <View className="flex-row gap-1 ml-2">
@@ -105,7 +114,7 @@ export default function GoalJourneyScreen() {
                <TouchableOpacity onPress={handleDetailedEdit} className="w-8 h-8 items-center justify-center rounded-full" activeOpacity={0.6}>
                  <Ionicons name="settings-outline" size={16} color="#64748B" />
                </TouchableOpacity>
-               <TouchableOpacity onPress={handleDelete} className="w-8 h-8 items-center justify-center rounded-full" activeOpacity={0.6}>
+               <TouchableOpacity onPress={confirmDelete} className="w-8 h-8 items-center justify-center rounded-full" activeOpacity={0.6}>
                  <Ionicons name="trash-outline" size={16} color="#EF4444" />
                </TouchableOpacity>
              </View>
@@ -114,7 +123,7 @@ export default function GoalJourneyScreen() {
        </View>
 
        <View className="px-8 mb-4">
-         <Text className="text-journeyMuted text-xs font-medium uppercase tracking-[2px] mt-2">Hedef Haritası</Text>
+         <Text className="text-journeyMuted dark:text-[#94A3B8] text-xs font-medium uppercase tracking-[2px] mt-2">Hedef Haritası</Text>
        </View>
 
        {/* Map List */}

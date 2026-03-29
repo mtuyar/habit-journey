@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { View, ScrollView, TouchableOpacity } from 'react-native';
+import { Text } from '@/components/ui/Text';
+import Animated, { FadeInDown, FadeInUp, SlideInRight } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, router } from 'expo-router';
 import { useProgressStore } from '@/store/useProgressStore';
@@ -7,9 +9,13 @@ import { cn } from '@/components/ui/Card';
 import { differenceInDays, addDays, format, isToday, startOfMonth, startOfWeek, endOfMonth, endOfWeek, eachDayOfInterval, isSameMonth } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from '@/lib/i18n';
+
+const AnimatedTouchableOpacity = Animated.createAnimatedComponent(TouchableOpacity);
 
 export default function GroupDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const { t } = useTranslation();
   
   const goals = useProgressStore(state => state.goals);
   const toggleTask = useProgressStore(state => state.toggleTaskCompletion);
@@ -54,11 +60,13 @@ export default function GroupDetailScreen() {
 
   if (!currentGroup || !currentGoal) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-journeyBg">
-        <Text className="text-journeyMuted font-light">Grup bulunamadı.</Text>
+      <SafeAreaView className="flex-1 items-center justify-center bg-journeyBg dark:bg-[#0F172A]">
+        <Text className="text-journeyMuted dark:text-[#94A3B8] font-light">{t('groupNotFound')}</Text>
       </SafeAreaView>
     );
   }
+
+  const isLastGroup = currentGoal.groups.indexOf(currentGroup) === currentGoal.groups.length - 1;
 
   const isLocked = currentGroup.status === 'locked';
   const startDate = currentGroup.startDate ? new Date(currentGroup.startDate) : new Date();
@@ -107,31 +115,39 @@ export default function GroupDetailScreen() {
     : format(startDate, 'MMMM yyyy', { locale: tr });
 
   return (
-    <SafeAreaView className="flex-1 bg-journeyBg">
+    <SafeAreaView className="flex-1 bg-journeyBg dark:bg-[#0F172A]">
       {/* Soft Header */}
-      <View className="px-6 pt-2 pb-2 flex-row items-center justify-between">
-        <TouchableOpacity 
-          onPress={() => router.back()} 
-          className="w-10 h-10 items-center justify-center -ml-2"
-        >
-          <Ionicons name="chevron-back" size={24} color="#94A3B8" />
-        </TouchableOpacity>
-        
-        <Text className="text-sm font-medium text-journeyText tracking-wide" numberOfLines={1}>
-          {currentGroup.name}
-        </Text>
-        
-        <TouchableOpacity 
-          onPress={() => setIsCalendarView(!isCalendarView)} 
-          className="w-10 h-10 items-center justify-center bg-white border border-journeyBorder/40 rounded-full"
-        >
-          <Ionicons name={isCalendarView ? "list-outline" : "calendar-outline"} size={18} color="#14B8A6" />
-        </TouchableOpacity>
+      <View className="px-6 pt-12 pb-4">
+        <View className="h-12 flex-row items-center justify-between relative z-10">
+          <TouchableOpacity 
+            onPress={() => router.back()} 
+            className="w-12 h-12 items-center justify-center -ml-2 z-20"
+          >
+            <Ionicons name="chevron-back" size={24} color="#94A3B8" />
+          </TouchableOpacity>
+          
+          <View className="absolute inset-x-0 h-full items-center justify-center pointer-events-none z-10">
+            <Text 
+              className="text-[15px] font-semibold text-journeyText dark:text-[#F8FAFC] tracking-wide text-center px-10" 
+              numberOfLines={1}
+            >
+              {currentGroup.name}
+            </Text>
+          </View>
+          
+          <AnimatedTouchableOpacity 
+            entering={SlideInRight.springify()}
+            onPress={() => setIsCalendarView(!isCalendarView)} 
+            className="w-12 h-12 items-center justify-center -mr-2 bg-journeyCard dark:bg-[#1E293B] border border-journeyBorder/40 dark:border-[#334155]/40 rounded-full shadow-sm z-20"
+          >
+            <Ionicons name={isCalendarView ? "list-outline" : "calendar-outline"} size={22} color="#14B8A6" />
+          </AnimatedTouchableOpacity>
+        </View>
       </View>
 
       <View className="px-6 mb-2 mt-4">
          <View className="bg-journeyAccent/5 border border-journeyAccent/20 py-3.5 px-5 rounded-[20px] flex-row justify-between items-center">
-            <Text className="text-journeyText font-medium text-[13px]">Toplam Aşama İlerlemesi</Text>
+            <Text className="text-journeyText dark:text-[#F8FAFC] font-medium text-[13px]">{t('totalStageProgress')}</Text>
             <Text className="text-journeyAccent font-bold text-[14px]">%{groupPercentage}</Text>
          </View>
       </View>
@@ -140,11 +156,11 @@ export default function GroupDetailScreen() {
         
         {/* Subtle Intro */}
         <View className="px-8 mt-6 mb-8 items-center">
-          <Text className="text-[11px] text-journeyMuted uppercase tracking-[3px] font-medium mb-1">
-            Günlük Akış
+          <Text className="text-[11px] text-journeyMuted dark:text-[#94A3B8] uppercase tracking-[3px] font-medium mb-1">
+            {t('dailyFlow')}
           </Text>
-          <Text className="text-[26px] font-light text-journeyText text-center leading-[32px]">
-            {currentGroup.durationInDays} gün. Zinciri{`\n`}<Text className="font-semibold text-journeyAccent">Kırma.</Text>
+          <Text className="text-[26px] font-light text-journeyText dark:text-[#F8FAFC] text-center leading-[32px]">
+            {currentGroup.durationInDays} {t('dayChain')}{`\n`}<Text className="font-semibold text-journeyAccent">{t('break')}</Text>
           </Text>
         </View>
 
@@ -152,18 +168,18 @@ export default function GroupDetailScreen() {
         <View className="mb-10 w-full">
           {isCalendarView ? (
             <View className="px-6 w-full">
-              <View className="bg-white rounded-[32px] border border-journeyBorder/40 w-full p-4 pb-6">
+              <View className="bg-journeyCard dark:bg-[#1E293B] rounded-[32px] border border-journeyBorder/40 dark:border-[#334155]/40 w-full p-4 pb-6">
                 
                 {/* Month Title */}
-                <Text className="text-center font-bold text-journeyText text-lg mb-4 capitalize">
+                <Text className="text-center font-bold text-journeyText dark:text-[#F8FAFC] text-lg mb-4 capitalize">
                    {monthLabel}
                 </Text>
 
                 {/* Days of week header */}
                 <View className="flex-row justify-between mb-3 w-full px-2">
-                   {['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'].map(w => (
-                     <Text key={w} className="w-[12%] text-center text-[10px] font-bold text-journeyMuted uppercase">
-                       {w}
+                   {['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].map(w => (
+                     <Text key={w} className="w-[12%] text-center text-[10px] font-bold text-journeyMuted dark:text-[#94A3B8] uppercase">
+                       {t(w as any)}
                      </Text>
                    ))}
                 </View>
@@ -184,12 +200,12 @@ export default function GroupDetailScreen() {
                            activeOpacity={0.8}
                            className={cn(
                              "w-[12%] aspect-square items-center justify-center rounded-[18px] border",
-                             dayData.isAllCompleted ? "bg-journeyAccent/10 border-journeyAccent/30" : "bg-[#F8FAFC]/50 border-journeyBorder/30",
-                             isSelected && !dayData.isAllCompleted && "border-journeyAccent/60 bg-white"
+                             dayData.isAllCompleted ? "bg-journeyAccent/10 border-journeyAccent/30" : "bg-[#F8FAFC]/50 dark:bg-black/20 border-journeyBorder/30 dark:border-[#334155]/30",
+                             isSelected && !dayData.isAllCompleted && "border-journeyAccent/60 bg-journeyCard dark:bg-[#1E293B]"
                            )}
                          >
                            <View className="flex-1 w-full items-center justify-center">
-                             <Text className={cn("text-[13px] leading-tight", dayData.isAllCompleted ? "text-journeyAccent font-bold" : isSelected ? "text-journeyText font-bold" : "text-journeyText font-medium")}>
+                             <Text className={cn("text-[13px] leading-tight", dayData.isAllCompleted ? "text-journeyAccent font-bold" : isSelected ? "text-journeyText dark:text-[#F8FAFC] font-bold" : "text-journeyText dark:text-[#F8FAFC] font-medium")}>
                                {format(d, 'd')}
                              </Text>
                              {(!dayData.isAllCompleted && dayData.progressPerc > 0) && (
@@ -205,7 +221,7 @@ export default function GroupDetailScreen() {
                        // Passive empty day from the month padding or outside interval
                        return (
                          <View key={i} className="w-[12%] aspect-square items-center justify-center rounded-xl bg-transparent">
-                           <Text className={cn("text-[13px]", isCurrentMonth ? "text-journeyMuted/40 font-light" : "text-transparent")}>
+                           <Text className={cn("text-[13px]", isCurrentMonth ? "text-journeyMuted dark:text-[#94A3B8]/40 font-light" : "text-transparent")}>
                               {format(d, 'd')}
                            </Text>
                          </View>
@@ -233,13 +249,13 @@ export default function GroupDetailScreen() {
                     activeOpacity={0.8}
                     className={cn(
                       "w-[46px] h-[76px] rounded-[24px] items-center py-3.5 justify-between border",
-                      day.isAllCompleted ? "bg-journeyAccent/10 border-journeyAccent/20" : "bg-white border-journeyBorder/40",
+                      day.isAllCompleted ? "bg-journeyAccent/10 border-journeyAccent/20" : "bg-journeyCard dark:bg-[#1E293B] border-journeyBorder/40 dark:border-[#334155]/40",
                       isSelected && !day.isAllCompleted && "border-journeyAccent/30 bg-[#F0FDF4]/50"
                     )}
                   >
                     <Text className={cn(
                       "text-[10px] uppercase font-medium",
-                      day.isAllCompleted ? "text-journeyAccent" : isSelected ? "text-journeyAccent" : "text-journeyMuted"
+                      day.isAllCompleted ? "text-journeyAccent" : isSelected ? "text-journeyAccent" : "text-journeyMuted dark:text-[#94A3B8]"
                     )}>
                       {day.displayWeekday}
                     </Text>
@@ -247,7 +263,7 @@ export default function GroupDetailScreen() {
                     <View className="items-center justify-center">
                       <Text className={cn(
                         "text-[18px] font-light",
-                        day.isAllCompleted ? "text-journeyAccent" : "text-journeyText"
+                        day.isAllCompleted ? "text-journeyAccent" : "text-journeyText dark:text-[#F8FAFC]"
                       )}>
                         {day.displayDay}
                       </Text>
@@ -264,34 +280,48 @@ export default function GroupDetailScreen() {
         </View>
 
         <View className="px-8 mb-6 flex-row items-baseline justify-between mt-2">
-          <Text className="text-journeyText text-xl font-medium tracking-tight">Günün Görevleri</Text>
-          <Text className="text-xs text-journeyMuted font-light">
-            {selectedDayData.progressNum} / {selectedDayData.total} {isLocked ? 'görev' : 'tamamlandı'}
+          <Text className="text-journeyText dark:text-[#F8FAFC] text-xl font-medium tracking-tight">{t('todaysTasks')}</Text>
+          <Text className="text-xs text-journeyMuted dark:text-[#94A3B8] font-light">
+            {selectedDayData.progressNum} / {selectedDayData.total} {isLocked ? t('task') : t('completed')}
           </Text>
         </View>
 
-        {isLocked && (
+        {currentGroup.status === 'completed' && (
            <View className="px-6 mb-4">
-             <View className="bg-journeyBorder/40 px-4 py-3.5 rounded-[16px] flex-row items-center border border-journeyBorder">
-               <Ionicons name="lock-closed-outline" size={16} color="#64748B" />
-               <Text className="text-[#64748B] text-[13px] ml-2.5 font-normal flex-1 leading-snug">
-                 Bu aşama henüz kilitlidir. Görevleri sadece önizleme olarak görüntüleyebilirsiniz, işaretleme yapılamaz.
+             <View className="bg-journeyAccent/10 px-5 py-4 rounded-[20px] border border-journeyAccent/20">
+               <Text className="text-journeyAccent font-bold text-[15px] mb-1">
+                 {isLastGroup ? t('goalCompletedTitle') : t('newStageUnlockedTitle')}
+               </Text>
+               <Text className="text-journeyText dark:text-[#F8FAFC]/80 text-[13px] leading-snug font-medium">
+                 {isLastGroup ? t('goalCompletedDesc') : t('newStageUnlockedDesc')}
                </Text>
              </View>
            </View>
         )}
 
+        {isLocked && (
+           <Animated.View entering={FadeInUp.springify()} className="px-6 mb-4">
+             <View className="bg-journeyBorder/20 px-4 py-3.5 rounded-[16px] flex-row items-center border border-journeyBorder/50 dark:border-[#334155]/50">
+               <Ionicons name="lock-closed-outline" size={16} color="#64748B" />
+               <Text className="text-[#64748B] text-[13px] ml-2.5 font-normal flex-1 leading-snug">
+                 {t('stageLocked')}
+               </Text>
+             </View>
+           </Animated.View>
+        )}
+
         {/* Delicate Task List */}
         <View className="px-6 space-y-3">
-          {currentGroup.tasks.length === 0 && (
-             <Text className="text-center text-journeyMuted text-[13px] font-light mt-4">Görev tanımlanmamış.</Text>
-          )}
-          {currentGroup.tasks.map(task => {
-            const isTaskDone = currentGroup.progress[selectedDayData.dateStr]?.[task.id] || false;
-            
-            return (
-              <TouchableOpacity 
-                key={task.id}
+           {currentGroup.tasks.length === 0 && (
+             <Text className="text-center text-journeyMuted dark:text-[#94A3B8] text-[13px] font-light mt-4">{t('noTasksDefined')}</Text>
+           )}
+           {currentGroup.tasks.map((task, index) => {
+             const isTaskDone = currentGroup.progress[selectedDayData.dateStr]?.[task.id] || false;
+             
+             return (
+               <AnimatedTouchableOpacity 
+                 entering={FadeInDown.delay(index * 70).springify()}
+                 key={task.id}
                 activeOpacity={isLocked ? 1 : 0.7}
                 onPress={() => {
                   if (!isLocked) {
@@ -300,7 +330,8 @@ export default function GroupDetailScreen() {
                 }}
                 className={cn(
                   "flex-row items-center p-4 rounded-[28px]",
-                  isLocked ? "bg-white/40 border border-transparent" : "bg-white border border-journeyBorder/40 mb-3"
+                  isLocked ? "bg-journeyCard dark:bg-[#1E293B]/40 border border-transparent" : 
+                  isTaskDone ? "bg-journeyBg dark:bg-[#0F172A] border border-journeyBorder/20 dark:border-[#334155]/20 mb-3" : "bg-journeyCard dark:bg-[#1E293B] border border-journeyBorder/40 dark:border-[#334155]/40 mb-3"
                 )}
               >
                 <View className={cn(
@@ -312,13 +343,13 @@ export default function GroupDetailScreen() {
                 </View>
                 <Text className={cn(
                   "text-[15px] flex-1",
-                  isTaskDone ? "text-journeyMuted font-light line-through decoration-journeyBorder" : "text-journeyText font-normal"
+                  isTaskDone ? "text-journeyMuted dark:text-[#94A3B8]/60 font-normal" : "text-journeyText dark:text-[#F8FAFC] font-normal"
                 )}>
                   {task.name}
                 </Text>
-              </TouchableOpacity>
-            )
-          })}
+               </AnimatedTouchableOpacity>
+             )
+           })}
         </View>
 
       </ScrollView>

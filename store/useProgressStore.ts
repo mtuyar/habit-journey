@@ -113,18 +113,22 @@ export const useProgressStore = create<ProgressState>()(
             }
           });
 
+          let finalGroups = [...updatedGroups];
           if (nextGroupUnlocked) {
-            const groupIndex = updatedGroups.findIndex(gr => gr.id === groupId);
-            if (groupIndex !== -1 && groupIndex + 1 < updatedGroups.length) {
+            const groupIndex = finalGroups.findIndex(gr => gr.id === groupId);
+            if (groupIndex !== -1 && groupIndex + 1 < finalGroups.length) {
               // Sonraki aşama kilitliyse otomatik kilidini aç
-              if (updatedGroups[groupIndex + 1].status === 'locked') {
-                 updatedGroups[groupIndex + 1].status = 'active'; 
-                 updatedGroups[groupIndex + 1].startDate = new Date().toISOString();
+              if (finalGroups[groupIndex + 1].status === 'locked') {
+                 finalGroups[groupIndex + 1] = {
+                   ...finalGroups[groupIndex + 1],
+                   status: 'active',
+                   startDate: new Date().toISOString()
+                 }
               }
             }
           }
 
-          return { ...g, groups: updatedGroups };
+          return { ...g, groups: finalGroups };
         });
 
         return { goals: goalsSnapshot };

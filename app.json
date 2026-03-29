@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "habit-journey",
+    "name": "Alışkanlık Yolculuğum",
     "slug": "habit-journey",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -44,17 +44,21 @@
           }
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
-      "typedRoutes": true,
-      "reactCompiler": true
+      "typedRoutes": true
     },
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "f61a2dae-959a-4514-8294-f672cc8b9d69"
+        "projectId": "ad01e338-d3ad-4eec-9038-71519db52cad"
       }
+    },
+    "notification": {
+      "icon": "./assets/images/android-icon-monochrome.png",
+      "color": "#14B8A6"
     }
   }
 }

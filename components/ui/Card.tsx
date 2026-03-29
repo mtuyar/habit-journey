@@ -15,7 +15,7 @@ interface CardProps extends ViewProps {
 export function Card({ className, children, ...props }: CardProps) {
   return (
     <View 
-      className={cn("bg-journeyCard rounded-3xl shadow-sm border border-[#F3EDDF] overflow-hidden", className)} 
+      className={cn("bg-journeyCard dark:bg-[#1E293B] rounded-3xl shadow-sm border border-[#F3EDDF] overflow-hidden", className)} 
       {...props}
     >
       {children}
