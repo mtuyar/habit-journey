@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,15 +16,14 @@ import {
 } from '@/store/useProgressStore';
 import { useTranslation } from '@/lib/i18n';
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
-const HEATMAP_WEEKS = 16;
-const HEATMAP_PADDING = 48;
-const CELL_GAP = 3;
-const CELL_SIZE = Math.floor((SCREEN_WIDTH - HEATMAP_PADDING - CELL_GAP * (HEATMAP_WEEKS - 1)) / HEATMAP_WEEKS);
+const HEATMAP_WEEKS = 20;
+const CELL = 13;
+const GAP = 3;
+// Alternating day labels — show only Mon / Wed / Fri / Sun for readability
+const DAY_LABELS = ['Pt', '', 'Ça', '', 'Cu', '', 'Pz'];
+const LEVEL_COLORS = ['#D1FAF0', '#5EEAD4', '#14B8A6', '#0D9488'];
 
-const LEVEL_COLORS = ['#E0FAF5', '#5EEAD4', '#14B8A6', '#0D9488'];
-
-// ── Achievements definition ────────────────────────────────────────────────
+// ── Achievements ──────────────────────────────────────────────────────────
 function buildAchievements(goals: Goal[], streak: number, total: number) {
   return [
     {
@@ -86,7 +85,7 @@ function buildAchievements(goals: Goal[], streak: number, total: number) {
   ];
 }
 
-// ── Sub-components ─────────────────────────────────────────────────────────
+// ── Stat Card ─────────────────────────────────────────────────────────────
 function StatCard({
   icon,
   value,
@@ -103,46 +102,75 @@ function StatCard({
   return (
     <Animated.View
       entering={FadeInDown.delay(delay).springify()}
-      className="flex-1 bg-journeyCard dark:bg-journeyDarkCard border border-journeyBorder dark:border-journeyDarkBorder rounded-[24px] p-4 items-center"
+      className="flex-1 bg-journeyCard dark:bg-journeyDarkCard border border-journeyBorder dark:border-journeyDarkBorder rounded-[22px] p-4 items-center"
     >
-      <Text style={{ fontSize: 22, marginBottom: 4 }}>{icon}</Text>
-      <Text style={{ fontSize: 24, fontWeight: '800', color, lineHeight: 28 }}>{value}</Text>
-      <Text className="text-journeyMuted text-[11px] font-semibold text-center mt-1 uppercase tracking-wide">
+      <Text style={{ fontSize: 20, marginBottom: 4 }}>{icon}</Text>
+      <Text style={{ fontSize: 22, fontWeight: '800', color, lineHeight: 26 }}>{value}</Text>
+      <Text
+        className="text-journeyMuted text-[10px] font-semibold text-center mt-1 uppercase tracking-wide"
+        numberOfLines={1}
+      >
         {label}
       </Text>
     </Animated.View>
   );
 }
 
+// ── Heatmap ───────────────────────────────────────────────────────────────
+// Layout: day labels (vertical, left) + scrollable week columns (right)
 function Heatmap({ goals }: { goals: Goal[] }) {
   const data = getActivityHeatmap(goals, HEATMAP_WEEKS);
-  // Reshape: columns = weeks, rows = days-of-week
+
+  // Reshape: columns[w] = 7 days of that week (index 0 = Monday)
   const columns: typeof data[] = [];
   for (let w = 0; w < HEATMAP_WEEKS; w++) {
     columns.push(data.slice(w * 7, w * 7 + 7));
   }
 
   return (
-    <View style={{ flexDirection: 'row', gap: CELL_GAP }}>
-      {columns.map((col, ci) => (
-        <View key={ci} style={{ flexDirection: 'column', gap: CELL_GAP }}>
-          {col.map((cell, ri) => (
-            <View
-              key={ri}
-              style={{
-                width: CELL_SIZE,
-                height: CELL_SIZE,
-                borderRadius: 3,
-                backgroundColor: LEVEL_COLORS[cell.level],
-              }}
-            />
-          ))}
-        </View>
-      ))}
+    <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+
+      {/* Day-of-week labels — vertical, left side */}
+      <View style={{ flexDirection: 'column', marginRight: 6 }}>
+        {DAY_LABELS.map((label, i) => (
+          <View
+            key={i}
+            style={{ height: CELL, marginBottom: i < 6 ? GAP : 0, justifyContent: 'center' }}
+          >
+            <Text style={{ fontSize: 9, color: '#5F8B8A', fontWeight: '600', width: 16 }}>
+              {label}
+            </Text>
+          </View>
+        ))}
+      </View>
+
+      {/* Scrollable week grid */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ flexDirection: 'row', gap: GAP }}
+      >
+        {columns.map((col, ci) => (
+          <View key={ci} style={{ flexDirection: 'column', gap: GAP }}>
+            {col.map((cell, ri) => (
+              <View
+                key={ri}
+                style={{
+                  width: CELL,
+                  height: CELL,
+                  borderRadius: 3,
+                  backgroundColor: LEVEL_COLORS[cell.level],
+                }}
+              />
+            ))}
+          </View>
+        ))}
+      </ScrollView>
     </View>
   );
 }
 
+// ── Achievement Badge ─────────────────────────────────────────────────────
 function AchievementBadge({
   icon,
   title,
@@ -160,32 +188,38 @@ function AchievementBadge({
       style={{
         borderColor: unlocked ? '#B2F0E8' : '#E5E7EB',
         backgroundColor: unlocked ? '#F0FDFA' : '#F9FAFB',
-        opacity: unlocked ? 1 : 0.55,
+        opacity: unlocked ? 1 : 0.5,
       }}
     >
       <View className="flex-row items-center justify-between mb-2">
         <Text style={{ fontSize: 26 }}>{icon}</Text>
-        {!unlocked && <Ionicons name="lock-closed" size={13} color="#9CA3AF" />}
-        {unlocked && (
+        {unlocked ? (
           <View className="w-5 h-5 rounded-full bg-journeyAccent items-center justify-center">
             <Ionicons name="checkmark" size={11} color="#FFF" />
           </View>
+        ) : (
+          <Ionicons name="lock-closed" size={13} color="#9CA3AF" />
         )}
       </View>
       <Text
         className="font-bold text-[13px] mb-0.5"
         style={{ color: unlocked ? '#134E4A' : '#6B7280' }}
+        numberOfLines={1}
       >
         {title}
       </Text>
-      <Text className="text-[11px]" style={{ color: unlocked ? '#5F8B8A' : '#9CA3AF' }}>
+      <Text
+        className="text-[11px] leading-snug"
+        style={{ color: unlocked ? '#5F8B8A' : '#9CA3AF' }}
+        numberOfLines={2}
+      >
         {desc}
       </Text>
     </View>
   );
 }
 
-// ── Main screen ────────────────────────────────────────────────────────────
+// ── Main Screen ───────────────────────────────────────────────────────────
 export default function InsightsScreen() {
   const goals = useProgressStore(state => state.goals);
   const { t } = useTranslation();
@@ -197,7 +231,6 @@ export default function InsightsScreen() {
   const achievements = buildAchievements(goals, streak, total);
   const unlockedCount = achievements.filter(a => a.unlocked).length;
 
-  // Group achievements into pairs for 2-column layout
   const achievementPairs: typeof achievements[] = [];
   for (let i = 0; i < achievements.length; i += 2) {
     achievementPairs.push(achievements.slice(i, i + 2));
@@ -206,7 +239,7 @@ export default function InsightsScreen() {
   return (
     <SafeAreaView className="flex-1 bg-journeyBg dark:bg-journeyDarkBg">
       {/* Header */}
-      <View className="px-6 pt-4 pb-2 flex-row items-center border-b border-journeyBorder dark:border-journeyDarkBorder">
+      <View className="px-6 pt-4 pb-3 flex-row items-center border-b border-journeyBorder dark:border-journeyDarkBorder">
         <TouchableOpacity
           onPress={() => router.back()}
           className="w-10 h-10 items-center justify-center -ml-2 mr-2"
@@ -222,8 +255,8 @@ export default function InsightsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ padding: 24, paddingBottom: 60 }}
       >
-        {/* Stat Cards */}
-        <Animated.View entering={FadeInDown.delay(50).springify()} className="flex-row gap-3 mb-3">
+        {/* 2×2 Stat Cards */}
+        <Animated.View entering={FadeInDown.delay(60).springify()} className="flex-row gap-3 mb-3">
           <StatCard icon="🔥" value={streak} label={t('currentStreak')} color="#F59E0B" delay={60} />
           <StatCard icon="⚡" value={best} label={t('bestStreak')} color="#0D9488" delay={120} />
         </Animated.View>
@@ -238,31 +271,19 @@ export default function InsightsScreen() {
             <Text className="text-journeyText dark:text-journeyDarkText font-bold text-[16px]">
               {t('activityTitle')}
             </Text>
+            {/* Legend */}
             <View className="flex-row items-center gap-1.5">
               {LEVEL_COLORS.map((c, i) => (
-                <View key={i} style={{ width: 10, height: 10, borderRadius: 2, backgroundColor: c }} />
+                <View
+                  key={i}
+                  style={{ width: 10, height: 10, borderRadius: 2, backgroundColor: c }}
+                />
               ))}
             </View>
           </View>
 
           <View className="bg-journeyCard dark:bg-journeyDarkCard border border-journeyBorder dark:border-journeyDarkBorder rounded-[24px] p-4">
             <Heatmap goals={goals} />
-
-            {/* Weekday labels below */}
-            <View style={{ flexDirection: 'row', marginTop: 8, paddingLeft: 1 }}>
-              {['P', 'S', 'Ç', 'P', 'C', 'C', 'P'].map((d, i) => (
-                <View
-                  key={i}
-                  style={{
-                    width: CELL_SIZE,
-                    marginRight: i < 6 ? CELL_GAP : 0,
-                    alignItems: 'center',
-                  }}
-                >
-                  <Text style={{ fontSize: 9, color: '#5F8B8A', fontWeight: '600' }}>{d}</Text>
-                </View>
-              ))}
-            </View>
           </View>
         </Animated.View>
 
