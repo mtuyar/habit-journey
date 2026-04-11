@@ -50,24 +50,24 @@ function buildAchievements(
     { id: 'first_journey', icon: '🌱', titleKey: 'ach_first_journey_title', descKey: 'ach_first_journey_desc', unlocked: goals.length >= 1 },
     { id: 'first_task', icon: '✅', titleKey: 'ach_first_task_title', descKey: 'ach_first_task_desc', unlocked: total >= 1 },
     { id: 'streak_3', icon: '🔥', titleKey: 'ach_streak_3_title', descKey: 'ach_streak_3_desc', unlocked: streak >= 3, progress: { current: Math.min(streak, 3), total: 3 } },
-    { id: 'streak_7', icon: '⚡', titleKey: 'ach_streak_7_title', descKey: 'ach_streak_7_desc', unlocked: streak >= 7, progress: { current: Math.min(streak, 7), total: 7 } },
-    { id: 'streak_14', icon: '🌙', titleKey: 'ach_streak_14_title', descKey: 'ach_streak_14_desc', unlocked: streak >= 14, progress: { current: Math.min(streak, 14), total: 14 } },
+    { id: 'streak_7', icon: '🌙', titleKey: 'ach_streak_7_title', descKey: 'ach_streak_7_desc', unlocked: streak >= 7, progress: { current: Math.min(streak, 7), total: 7 } },
+    { id: 'streak_14', icon: '☪️', titleKey: 'ach_streak_14_title', descKey: 'ach_streak_14_desc', unlocked: streak >= 14, progress: { current: Math.min(streak, 14), total: 14 } },
     { id: 'streak_30', icon: '🌕', titleKey: 'ach_streak_30_title', descKey: 'ach_streak_30_desc', unlocked: streak >= 30, progress: { current: Math.min(streak, 30), total: 30 } },
-    { id: 'streak_60', icon: '🗿', titleKey: 'ach_streak_60_title', descKey: 'ach_streak_60_desc', unlocked: streak >= 60, progress: { current: Math.min(streak, 60), total: 60 } },
-    { id: 'streak_100', icon: '👑', titleKey: 'ach_streak_100_title', descKey: 'ach_streak_100_desc', unlocked: streak >= 100, progress: { current: Math.min(streak, 100), total: 100 } },
+    { id: 'streak_60', icon: '🌿', titleKey: 'ach_streak_60_title', descKey: 'ach_streak_60_desc', unlocked: streak >= 60, progress: { current: Math.min(streak, 60), total: 60 } },
+    { id: 'streak_100', icon: '⭐', titleKey: 'ach_streak_100_title', descKey: 'ach_streak_100_desc', unlocked: streak >= 100, progress: { current: Math.min(streak, 100), total: 100 } },
     { id: 'tasks_10', icon: '🎯', titleKey: 'ach_tasks_10_title', descKey: 'ach_tasks_10_desc', unlocked: total >= 10, progress: { current: Math.min(total, 10), total: 10 } },
-    { id: 'tasks_50', icon: '🥉', titleKey: 'ach_tasks_50_title', descKey: 'ach_tasks_50_desc', unlocked: total >= 50, progress: { current: Math.min(total, 50), total: 50 } },
+    { id: 'tasks_50', icon: '📿', titleKey: 'ach_tasks_50_title', descKey: 'ach_tasks_50_desc', unlocked: total >= 50, progress: { current: Math.min(total, 50), total: 50 } },
     { id: 'tasks_100', icon: '💎', titleKey: 'ach_tasks_100_title', descKey: 'ach_tasks_100_desc', unlocked: total >= 100, progress: { current: Math.min(total, 100), total: 100 } },
-    { id: 'tasks_250', icon: '🎖️', titleKey: 'ach_tasks_250_title', descKey: 'ach_tasks_250_desc', unlocked: total >= 250, progress: { current: Math.min(total, 250), total: 250 } },
+    { id: 'tasks_250', icon: '🌟', titleKey: 'ach_tasks_250_title', descKey: 'ach_tasks_250_desc', unlocked: total >= 250, progress: { current: Math.min(total, 250), total: 250 } },
     { id: 'tasks_500', icon: '🏅', titleKey: 'ach_tasks_500_title', descKey: 'ach_tasks_500_desc', unlocked: total >= 500, progress: { current: Math.min(total, 500), total: 500 } },
     { id: 'perfect_day', icon: '💯', titleKey: 'ach_perfect_day_title', descKey: 'ach_perfect_day_desc', unlocked: perfectDayCount >= 1 },
     { id: 'perfect_week', icon: '📅', titleKey: 'ach_perfect_week_title', descKey: 'ach_perfect_week_desc', unlocked: perfectWeekStreak >= 7, progress: { current: Math.min(perfectWeekStreak, 7), total: 7 } },
-    { id: 'perfect_30', icon: '🌟', titleKey: 'ach_perfect_30_title', descKey: 'ach_perfect_30_desc', unlocked: perfectDayCount >= 30, progress: { current: Math.min(perfectDayCount, 30), total: 30 } },
+    { id: 'perfect_30', icon: '✨', titleKey: 'ach_perfect_30_title', descKey: 'ach_perfect_30_desc', unlocked: perfectDayCount >= 30, progress: { current: Math.min(perfectDayCount, 30), total: 30 } },
     { id: 'stage_complete', icon: '⭐', titleKey: 'ach_stage_title', descKey: 'ach_stage_desc', unlocked: completedStages >= 1 },
-    { id: 'five_stages', icon: '🔮', titleKey: 'ach_five_stages_title', descKey: 'ach_five_stages_desc', unlocked: completedStages >= 5, progress: { current: Math.min(completedStages, 5), total: 5 } },
+    { id: 'five_stages', icon: '🕌', titleKey: 'ach_five_stages_title', descKey: 'ach_five_stages_desc', unlocked: completedStages >= 5, progress: { current: Math.min(completedStages, 5), total: 5 } },
     { id: 'goal_complete', icon: '🏆', titleKey: 'ach_goal_title', descKey: 'ach_goal_desc', unlocked: completedGoals >= 1 },
     { id: 'three_goals', icon: '🥇', titleKey: 'ach_three_goals_title', descKey: 'ach_three_goals_desc', unlocked: completedGoals >= 3, progress: { current: Math.min(completedGoals, 3), total: 3 } },
-    { id: 'comeback', icon: '🔄', titleKey: 'ach_comeback_title', descKey: 'ach_comeback_desc', unlocked: comebacks >= 1 },
+    { id: 'comeback', icon: '🌱', titleKey: 'ach_comeback_title', descKey: 'ach_comeback_desc', unlocked: comebacks >= 1 },
   ];
 }
 
@@ -85,7 +85,7 @@ function StatCard({ icon, value, label, accent, delay: _delay, isDark }: { icon:
       }}
     >
       <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: accent + '20', alignItems: 'center', justifyContent: 'center', marginBottom: 10 }}>
-        <Text style={{ fontSize: 18 }}>{icon}</Text>
+        <Ionicons name={icon as any} size={18} color={accent} />
       </View>
       <Text style={{ fontSize: 24, fontWeight: '800', color: accent, lineHeight: 28 }}>{value}</Text>
       <Text style={{ fontSize: 11, color: '#5F8B8A', fontWeight: '600', marginTop: 4, textTransform: 'uppercase', letterSpacing: 0.8 }} numberOfLines={1}>
@@ -96,12 +96,12 @@ function StatCard({ icon, value, label, accent, delay: _delay, isDark }: { icon:
 }
 
 // ─── Week Strip ───────────────────────────────────────────────────────────────
-const WEEK_LEVEL_STYLE: Record<DayLevel, { lightBg: string; darkBg: string; border: string; dot: string }> = {
-  perfect:  { lightBg: '#0D9488', darkBg: '#0D9488', border: '#0D9488', dot: '#fff' },
-  partial:  { lightBg: '#FEF9C3', darkBg: '#2D2200', border: '#FDE047', dot: '#CA8A04' },
-  missed:   { lightBg: '#FEF2F2', darkBg: '#2D0808', border: '#FECACA', dot: '#EF4444' },
-  empty:    { lightBg: 'transparent', darkBg: 'transparent', border: '#B2F0E840', dot: '#B2F0E8' },
-  future:   { lightBg: 'transparent', darkBg: 'transparent', border: '#B2F0E820', dot: '#B2F0E840' },
+const WEEK_DOT_COLOR: Record<DayLevel, string> = {
+  perfect: '#059669',
+  partial: '#F59E0B',
+  missed:  '#EF4444',
+  empty:   '#CBD5E1',
+  future:  'transparent',
 };
 const DOW_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as const;
 
@@ -109,15 +109,16 @@ function WeekStrip({ goals, selectedDate, onSelectDate, isDark }: { goals: Goal[
   const { t } = useTranslation();
   const todayStr = format(new Date(), 'yyyy-MM-dd');
   const dayStats = getThisWeekDayStats(goals);
+  const cardBg = isDark ? '#0E3330' : '#FFFFFF';
+  const cardBorder = isDark ? '#1B5E58' : '#E2E8F0';
 
   return (
     <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
       {dayStats.map((d, i) => {
-        const s = WEEK_LEVEL_STYLE[d.level];
         const isToday = d.date === todayStr;
         const isSelected = d.date === selectedDate;
         const dayKey = DOW_KEYS[new Date(d.date).getDay()];
-        const bg = isDark ? s.darkBg : s.lightBg;
+        const dotColor = WEEK_DOT_COLOR[d.level];
 
         return (
           <TouchableOpacity
@@ -132,21 +133,18 @@ function WeekStrip({ goals, selectedDate, onSelectDate, isDark }: { goals: Goal[
               alignItems: 'center',
               justifyContent: 'space-between',
               paddingVertical: 10,
-              backgroundColor: bg,
+              backgroundColor: cardBg,
               borderWidth: isSelected ? 2.5 : isToday ? 2 : 1.5,
-              borderColor: isSelected ? '#F59E0B' : isToday && d.level === 'empty' ? '#0D948870' : s.border,
+              borderColor: isSelected ? '#F59E0B' : isToday ? '#0D9488' : cardBorder,
             }}
           >
-            <Text style={{ fontSize: 10, fontWeight: '700', color: d.level === 'perfect' ? '#fff' : '#5F8B8A', letterSpacing: 0.5 }}>
+            <Text style={{ fontSize: 10, fontWeight: '700', color: '#5F8B8A', letterSpacing: 0.5 }}>
               {t(dayKey)}
             </Text>
-            <Text style={{ fontSize: 15, fontWeight: isToday ? '800' : '500', color: d.level === 'perfect' ? '#fff' : isToday ? '#0D9488' : isDark ? '#CCFBF1' : '#134E4A' }}>
+            <Text style={{ fontSize: 15, fontWeight: isToday ? '800' : '500', color: isToday ? '#0D9488' : isDark ? '#CCFBF1' : '#134E4A' }}>
               {format(new Date(d.date), 'd')}
             </Text>
-            {d.level === 'perfect'
-              ? <Ionicons name="checkmark" size={12} color="#fff" />
-              : <View style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: s.dot }} />
-            }
+            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: dotColor }} />
           </TouchableOpacity>
         );
       })}
@@ -372,7 +370,8 @@ export default function InsightsScreen() {
   const isDarkMode = useSettingsStore(state => state.isDarkMode);
   const { t } = useTranslation();
 
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [weekSelectedDate, setWeekSelectedDate] = useState<string | null>(null);
+  const [calSelectedDate, setCalSelectedDate] = useState<string | null>(null);
 
   const streak          = computeStreak(goals);
   const best            = getBestStreak(goals);
@@ -389,10 +388,6 @@ export default function InsightsScreen() {
 
   const pairs: (typeof achievements)[] = [];
   for (let i = 0; i < achievements.length; i += 2) pairs.push(achievements.slice(i, i + 2));
-
-  // Is selectedDate in the last-7-days strip?
-  const last7 = getThisWeekDayStats(goals).map(d => d.date);
-  const selectedInStrip = selectedDate ? last7.includes(selectedDate) : false;
 
   const cardBg = isDarkMode ? '#0E3330' : '#FFFFFF';
   const cardBorder = isDarkMode ? '#1B5E58' : '#B2F0E8';
@@ -417,10 +412,10 @@ export default function InsightsScreen() {
         <View style={{ marginBottom: 16 }}>
           <SectionHeader title={t('thisWeekTitle')} isDark={isDarkMode} />
           <View style={{ backgroundColor: cardBg, borderRadius: 24, borderWidth: 1, borderColor: cardBorder, padding: 16 }}>
-            <WeekStrip goals={goals} selectedDate={selectedDate} onSelectDate={setSelectedDate} isDark={isDarkMode} />
+            <WeekStrip goals={goals} selectedDate={weekSelectedDate} onSelectDate={setWeekSelectedDate} isDark={isDarkMode} />
           </View>
-          {selectedDate && selectedInStrip && (
-            <DayDetailPanel goals={goals} dateStr={selectedDate} isDark={isDarkMode} />
+          {weekSelectedDate && (
+            <DayDetailPanel goals={goals} dateStr={weekSelectedDate} isDark={isDarkMode} />
           )}
         </View>
 
@@ -428,25 +423,25 @@ export default function InsightsScreen() {
         <View style={{ marginBottom: 24 }}>
           <SectionHeader title={format(new Date(), 'MMMM yyyy', { locale: tr })} isDark={isDarkMode} />
           <View style={{ backgroundColor: cardBg, borderRadius: 24, borderWidth: 1, borderColor: cardBorder, padding: 16 }}>
-            <MonthlyCalendar goals={goals} selectedDate={selectedDate} onSelectDate={setSelectedDate} isDark={isDarkMode} />
+            <MonthlyCalendar goals={goals} selectedDate={calSelectedDate} onSelectDate={setCalSelectedDate} isDark={isDarkMode} />
           </View>
-          {selectedDate && !selectedInStrip && (
-            <DayDetailPanel goals={goals} dateStr={selectedDate} isDark={isDarkMode} />
+          {calSelectedDate && (
+            <DayDetailPanel goals={goals} dateStr={calSelectedDate} isDark={isDarkMode} />
           )}
         </View>
 
         {/* ── Stat Cards ── */}
         <View style={{ flexDirection: 'row', gap: 12, marginBottom: 12 }}>
-          <StatCard icon="🔥" value={streak}     label={t('currentStreak')}  accent="#F59E0B" delay={0} isDark={isDarkMode} />
-          <StatCard icon="⚡" value={best}        label={t('bestStreak')}     accent="#0D9488" delay={0} isDark={isDarkMode} />
+          <StatCard icon="flame"           value={streak}       label={t('currentStreak')}  accent="#F59E0B" delay={0} isDark={isDarkMode} />
+          <StatCard icon="trophy-outline"  value={best}         label={t('bestStreak')}      accent="#0D9488" delay={0} isDark={isDarkMode} />
         </View>
         <View style={{ flexDirection: 'row', gap: 12, marginBottom: 12 }}>
-          <StatCard icon="✅" value={total}       label={t('totalTasksDone')} accent="#059669" delay={0} isDark={isDarkMode} />
-          <StatCard icon="📊" value={`${rate}%`} label={t('completionRate')} accent="#7C3AED" delay={0} isDark={isDarkMode} />
+          <StatCard icon="checkmark-circle-outline" value={total}        label={t('totalTasksDone')} accent="#059669" delay={0} isDark={isDarkMode} />
+          <StatCard icon="stats-chart-outline"      value={`${rate}%`}  label={t('completionRate')} accent="#7C3AED" delay={0} isDark={isDarkMode} />
         </View>
         <View style={{ flexDirection: 'row', gap: 12, marginBottom: 28 }}>
-          <StatCard icon="📅" value={activeDays}   label={t('totalActiveDays')} accent="#0891B2" delay={0} isDark={isDarkMode} />
-          <StatCard icon="💯" value={perfectCount} label={t('perfectDays')}     accent="#BE185D" delay={0} isDark={isDarkMode} />
+          <StatCard icon="calendar-outline" value={activeDays}   label={t('totalActiveDays')} accent="#0891B2" delay={0} isDark={isDarkMode} />
+          <StatCard icon="star-outline"     value={perfectCount} label={t('perfectDays')}     accent="#BE185D" delay={0} isDark={isDarkMode} />
         </View>
 
         {/* ── Achievements ── */}

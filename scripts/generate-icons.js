@@ -1,7 +1,7 @@
 const sharp = require('sharp');
 const path = require('path');
 
-const SRC  = '/Users/mehmettahauyar/Downloads/icon-last.png';
+const SRC  = path.join(__dirname, '..', 'assets', 'images', 'app-icons', 'ios', 'icon-1024x1024.png');
 const OUT  = path.join(__dirname, '..', 'assets', 'images');
 
 async function generate() {

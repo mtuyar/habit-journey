@@ -127,8 +127,8 @@ export function JourneyNode({ group, index, isLast }: { group: Group; index: num
           {group.name}
         </Text>
 
-        <Text className="text-[11px] text-journeyMuted tracking-widest uppercase font-medium mb-3">
-          {group.durationInDays} {t('days')} / {group.tasks.length} {t('task')}
+        <Text className="text-[11px] text-journeyMuted tracking-wide font-medium mb-3">
+          {group.durationInDays} {t('days')} · {group.tasks.length} {t('task')}
         </Text>
 
         {!isLocked && (
