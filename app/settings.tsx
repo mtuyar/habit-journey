@@ -8,8 +8,8 @@ import { useProgressStore } from '@/store/useProgressStore';
 import { Text } from '@/components/ui/Text';
 import { cn } from '@/components/ui/Card';
 import { useTranslation } from '@/lib/i18n';
-import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { generateTestGoals } from '@/lib/testData';
 
 const FONT_OPTIONS = [
   { label: 'A-', value: 0.9 },
@@ -60,19 +60,13 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-journeyBg dark:bg-journeyDarkBg">
-      <View className="px-6 pt-4 pb-2 flex-row items-center border-b border-journeyBorder/30 dark:border-journeyDarkBorder/30">
-        <TouchableOpacity 
-          onPress={() => router.back()} 
-          className="w-10 h-10 items-center justify-center -ml-2 mr-2"
-        >
-          <Ionicons name="chevron-back" size={24} color="#94A3B8" />
-        </TouchableOpacity>
-        <Text className="text-[20px] font-semibold text-journeyText dark:text-journeyDarkText">{t('settings')}</Text>
+      <View className="px-6 pt-5 pb-3 border-b border-journeyBorder/30 dark:border-journeyDarkBorder/30">
+        <Text className="text-[26px] font-bold text-journeyText dark:text-journeyDarkText tracking-tight">{t('settings')}</Text>
       </View>
 
-      <ScrollView contentContainerStyle={{ padding: 24, paddingBottom: 100 }}>
+      <ScrollView contentContainerStyle={{ padding: 24, paddingBottom: 110 }}>
         
-        <Animated.View entering={FadeInDown.delay(100).springify()} className="mb-8">
+        <View className="mb-8">
           <Text className="text-[#64748B] text-[11px] font-bold uppercase tracking-[2px] mb-3 ml-2">{t('appearanceTitle')}</Text>
           <View className="bg-journeyCard dark:bg-journeyDarkCard border border-journeyBorder/40 dark:border-journeyDarkBorder/40 rounded-[28px] p-5 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
             <Text className="text-journeyText dark:text-journeyDarkText font-medium text-[15px] mb-4">{t('appFontSize')}</Text>
@@ -104,9 +98,9 @@ export default function SettingsScreen() {
               {t('fontSizeDesc')}
             </Text>
           </View>
-        </Animated.View>
+        </View>
 
-        <Animated.View entering={FadeInDown.delay(200).springify()} className="mb-8">
+        <View className="mb-8">
           <Text className="text-[#64748B] text-[11px] font-bold uppercase tracking-[2px] mb-3 ml-2">{t('preferences')}</Text>
           <View className="bg-journeyCard dark:bg-journeyDarkCard border border-journeyBorder/40 dark:border-journeyDarkBorder/40 rounded-[28px] shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
             
@@ -139,7 +133,7 @@ export default function SettingsScreen() {
             </View>
 
             {isNotificationsEnabled && (
-              <Animated.View entering={FadeInDown.springify()} className="border-b border-journeyBorder/20 dark:border-journeyDarkBorder/20">
+              <View className="border-b border-journeyBorder/20 dark:border-journeyDarkBorder/20">
                 <TouchableOpacity 
                   activeOpacity={0.7}
                   onPress={() => setShowTimePicker(true)}
@@ -157,7 +151,7 @@ export default function SettingsScreen() {
                     <Ionicons name="chevron-down" size={14} color="#14B8A6" />
                   </View>
                 </TouchableOpacity>
-              </Animated.View>
+              </View>
             )}
 
             <View className={cn("flex-row items-center justify-between p-5", !isNotificationsEnabled && "border-t border-journeyBorder/20 dark:border-journeyDarkBorder/20")}>
@@ -174,9 +168,9 @@ export default function SettingsScreen() {
             </View>
 
           </View>
-        </Animated.View>
+        </View>
 
-        <Animated.View entering={FadeInDown.delay(200).springify()} className="mb-6">
+        <View className="mb-6">
           <Text className="text-[#64748B] text-[11px] font-bold uppercase tracking-[2px] mb-3 ml-2">{t('aiSettingsTitle')}</Text>
           <View className="bg-journeyCard dark:bg-journeyDarkCard border border-journeyBorder/40 dark:border-journeyDarkBorder/40 rounded-[28px] p-5 shadow-[0_2px_8px_rgba(0,0,0,0.02)] relative overflow-hidden">
             
@@ -202,9 +196,9 @@ export default function SettingsScreen() {
               {t('aiApiKeyHelp')}
             </Text>
           </View>
-        </Animated.View>
+        </View>
 
-        <Animated.View entering={FadeInDown.delay(300).springify()} className="mb-8">
+        <View className="mb-8">
           <Text className="text-[#64748B] text-[11px] font-bold uppercase tracking-[2px] mb-3 ml-2">{t('dangerZone')}</Text>
           <TouchableOpacity 
             activeOpacity={0.8}
@@ -219,7 +213,49 @@ export default function SettingsScreen() {
               <Text className="text-[#F87171] text-[12px] mt-1 pr-4 leading-tight">{t('resetDesc')}</Text>
             </View>
           </TouchableOpacity>
-        </Animated.View>
+        </View>
+
+        {__DEV__ && (
+          <View className="mb-6">
+            <Text className="text-[#64748B] text-[11px] font-bold uppercase tracking-[2px] mb-3 ml-2">
+              🛠 Geliştirici
+            </Text>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => {
+                Alert.alert(
+                  'Test Verisi Yükle',
+                  '3 örnek hedef ve geçmiş ilerleme verisi yüklenir. Mevcut verilerle birleştirilir.',
+                  [
+                    { text: 'İptal', style: 'cancel' },
+                    {
+                      text: 'Yükle',
+                      onPress: () => {
+                        const testGoals = generateTestGoals();
+                        useProgressStore.setState(state => ({
+                          goals: [
+                            ...state.goals.filter(g => !g.id.startsWith('test-')),
+                            ...testGoals,
+                          ],
+                        }));
+                        Alert.alert('✅ Hazır', 'Test verisi yüklendi. İstatistikler ve ısı haritası kontrol edilebilir.');
+                      },
+                    },
+                  ]
+                );
+              }}
+              className="bg-[#F0FDF4] border border-[#86EFAC] rounded-[24px] p-5 flex-row items-center"
+            >
+              <View className="w-10 h-10 bg-white items-center justify-center rounded-full mr-4 border border-[#86EFAC]">
+                <Text style={{ fontSize: 18 }}>🧪</Text>
+              </View>
+              <View className="flex-1">
+                <Text className="text-[#15803D] font-bold text-[15px]">Test Verisi Yükle</Text>
+                <Text className="text-[#4ADE80] text-[12px] mt-0.5">4 hedef · Şub–May programı dahil</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        )}
 
         <View className="items-center mt-4">
           <Text className="text-journeyMuted dark:text-journeyMuted text-[12px] font-medium">Alışkanlık Yolculuğum v1.0.0</Text>

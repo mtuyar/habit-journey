@@ -1,13 +1,14 @@
 import React from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { Text } from '@/components/ui/Text';
-import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Group } from '@/store/useProgressStore';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { cn } from '@/components/ui/Card';
+import { useTranslation } from '@/lib/i18n';
 
 export function JourneyNode({ group, index, isLast }: { group: Group; index: number; isLast: boolean }) {
+  const { t } = useTranslation();
   const totalTasksPossible = group.durationInDays * group.tasks.length;
   let completedTasks = 0;
 
@@ -26,10 +27,7 @@ export function JourneyNode({ group, index, isLast }: { group: Group; index: num
   const barColor = isCompleted ? '#059669' : '#0D9488';
 
   return (
-    <Animated.View
-      entering={FadeInDown.delay(index * 150).springify()}
-      className="flex-row items-stretch"
-    >
+    <View className="flex-row items-stretch">
       {/* Left Vertical Track */}
       <View className="w-12 items-center mr-3 relative">
         {!isLast && (
@@ -39,7 +37,6 @@ export function JourneyNode({ group, index, isLast }: { group: Group; index: num
           />
         )}
 
-        {/* Node dot */}
         <View
           style={{
             width: 40,
@@ -81,26 +78,35 @@ export function JourneyNode({ group, index, isLast }: { group: Group; index: num
         {/* Status badge */}
         {!isLocked && (
           <View className="flex-row items-center justify-between mb-2">
-            <View
-              style={{
-                paddingHorizontal: 8,
-                paddingVertical: 3,
-                borderRadius: 99,
-                backgroundColor: isCompleted ? '#05996918' : '#0D948818',
-                alignSelf: 'flex-start',
-              }}
-            >
-              <Text
+            <View className="flex-row items-center gap-2">
+              <View
                 style={{
-                  fontSize: 10,
-                  fontWeight: '700',
-                  letterSpacing: 1,
-                  textTransform: 'uppercase',
-                  color: isCompleted ? '#059669' : '#0D9488',
+                  paddingHorizontal: 8,
+                  paddingVertical: 3,
+                  borderRadius: 99,
+                  backgroundColor: isCompleted ? '#05996918' : '#0D948818',
+                  alignSelf: 'flex-start',
                 }}
               >
-                {isCompleted ? '✓ Tamamlandı' : 'Aktif'}
-              </Text>
+                <Text
+                  style={{
+                    fontSize: 10,
+                    fontWeight: '700',
+                    letterSpacing: 1,
+                    textTransform: 'uppercase',
+                    color: isCompleted ? '#059669' : '#0D9488',
+                  }}
+                >
+                  {isCompleted ? t('statusCompleted') : t('statusActive')}
+                </Text>
+              </View>
+              {!!group.retryCount && group.retryCount > 0 && (
+                <View style={{ paddingHorizontal: 7, paddingVertical: 3, borderRadius: 99, backgroundColor: '#F59E0B18' }}>
+                  <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 0.8, color: '#D97706' }}>
+                    {t('retryAttempt')} #{group.retryCount + 1}
+                  </Text>
+                </View>
+              )}
             </View>
             {!isLocked && (
               <Text style={{ fontSize: 11, color: '#5F8B8A', fontWeight: '600' }}>
@@ -122,30 +128,15 @@ export function JourneyNode({ group, index, isLast }: { group: Group; index: num
         </Text>
 
         <Text className="text-[11px] text-journeyMuted tracking-widest uppercase font-medium mb-3">
-          {group.durationInDays} Gün / {group.tasks.length} Görev
+          {group.durationInDays} {t('days')} / {group.tasks.length} {t('task')}
         </Text>
 
         {!isLocked && (
-          <View
-            style={{
-              width: '100%',
-              height: 5,
-              backgroundColor: '#B2F0E8',
-              borderRadius: 99,
-              overflow: 'hidden',
-            }}
-          >
-            <View
-              style={{
-                width: `${pb * 100}%`,
-                height: '100%',
-                backgroundColor: barColor,
-                borderRadius: 99,
-              }}
-            />
+          <View style={{ width: '100%', height: 5, backgroundColor: '#B2F0E8', borderRadius: 99, overflow: 'hidden' }}>
+            <View style={{ width: `${pb * 100}%`, height: '100%', backgroundColor: barColor, borderRadius: 99 }} />
           </View>
         )}
       </TouchableOpacity>
-    </Animated.View>
+    </View>
   );
 }

@@ -16,9 +16,9 @@ module.exports = {
         journeyGold: '#F59E0B',     // Amber — streak & achievements
         journeySuccess: '#059669',  // Emerald — completed states
         // Dark mode
-        journeyDarkBg: '#021a19',
-        journeyDarkCard: '#0a2c2a',
-        journeyDarkBorder: '#134e4a',
+        journeyDarkBg: '#07211F',
+        journeyDarkCard: '#0E3330',
+        journeyDarkBorder: '#1B5E58',
         journeyDarkText: '#CCFBF1',
       }
     },
