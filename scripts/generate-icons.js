@@ -1,109 +1,86 @@
 const sharp = require('sharp');
 const path = require('path');
-const fs = require('fs');
 
-const OUT = path.join(__dirname, '..', 'assets', 'images');
+const SRC  = '/Users/mehmettahauyar/Downloads/icon-last.png';
+const OUT  = path.join(__dirname, '..', 'assets', 'images');
 
-// ── Shared leaf + path SVG elements ──────────────────────────────────────────
-// Canvas: 1024×1024. Single leaf, tilted ~35°, fills ~85% of canvas.
-// Tip: (800, 150)   Base: (210, 870)
-// One continuous closed path — right edge curves out, left edge curves back.
-
-const leafPath = `
-  M 800 150
-  C 920 310, 820 530, 510 640
-  C 390 680, 270 770, 210 870
-  C 100 760, 210 560, 370 440
-  C 530 320, 660 190, 800 150
-  Z
-`;
-
-// S-curve road along the leaf center (base → tip)
-const roadPath = `M 230 840 C 360 700, 420 590, 510 510 C 610 430, 710 310, 780 170`;
-
-// ── 1. iOS icon — white bg, leaf + road ──────────────────────────────────────
-const iosSvg = `
-<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
-  <defs>
-    <radialGradient id="leafGrad" cx="55%" cy="40%" r="60%">
-      <stop offset="0%" stop-color="#22a65a"/>
-      <stop offset="100%" stop-color="#0a4a28"/>
-    </radialGradient>
-    <clipPath id="roundedClip">
-      <rect width="1024" height="1024" rx="200" ry="200"/>
-    </clipPath>
-  </defs>
-
-  <!-- White background -->
-  <rect width="1024" height="1024" rx="200" ry="200" fill="#ffffff"/>
-
-  <!-- Subtle teal glow behind leaf -->
-  <ellipse cx="510" cy="512" rx="420" ry="420" fill="#0D948808"/>
-
-  <!-- Leaf shape -->
-  <path d="${leafPath.trim()}" fill="url(#leafGrad)" clip-path="url(#roundedClip)"/>
-
-  <!-- Curved road on leaf -->
-  <path d="${roadPath}" fill="none" stroke="white" stroke-width="58" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
-</svg>
-`;
-
-// ── 2. Android foreground — transparent bg, leaf + road, safe-zone padded ───
-// Shrink to ~80% (820px effective) → scale 0.80, translate 102px each side
-const androidFgSvg = `
-<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
-  <defs>
-    <radialGradient id="leafGrad2" cx="55%" cy="40%" r="60%">
-      <stop offset="0%" stop-color="#22a65a"/>
-      <stop offset="100%" stop-color="#0a4a28"/>
-    </radialGradient>
-  </defs>
-
-  <!-- Transparent background (no rect) -->
-
-  <g transform="translate(102 102) scale(0.80)">
-    <!-- Leaf shape -->
-    <path d="${leafPath.trim()}" fill="url(#leafGrad2)"/>
-
-    <!-- Curved road on leaf -->
-    <path d="${roadPath}" fill="none" stroke="white" stroke-width="58" stroke-linecap="round" stroke-linejoin="round" opacity="0.92"/>
-  </g>
-</svg>
-`;
-
-// ── 3. Android monochrome — transparent bg, white silhouette ─────────────────
-const androidMonoSvg = `
-<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
-  <!-- Transparent background (no rect) -->
-
-  <g transform="translate(102 102) scale(0.80)">
-    <!-- White leaf silhouette -->
-    <path d="${leafPath.trim()}" fill="white"/>
-
-    <!-- Subtle road (dark stroke on white) -->
-    <path d="${roadPath}" fill="none" stroke="rgba(0,0,0,0.30)" stroke-width="58" stroke-linecap="round" stroke-linejoin="round"/>
-  </g>
-</svg>
-`;
-
-// ── Generate PNGs ─────────────────────────────────────────────────────────────
 async function generate() {
-  const tasks = [
-    { svg: iosSvg,         file: 'icon.png',                    label: 'iOS icon' },
-    { svg: androidFgSvg,   file: 'android-icon-foreground.png', label: 'Android foreground' },
-    { svg: androidMonoSvg, file: 'android-icon-monochrome.png', label: 'Android monochrome' },
-  ];
+  // ── 1. iOS icon — use source as-is (already 1024×1024, white bg, rounded) ──
+  await sharp(SRC)
+    .resize(1024, 1024)
+    .png()
+    .toFile(path.join(OUT, 'icon.png'));
+  console.log('✓ iOS icon → icon.png');
 
-  for (const { svg, file, label } of tasks) {
-    const outPath = path.join(OUT, file);
-    await sharp(Buffer.from(svg))
-      .resize(1024, 1024)
-      .png()
-      .toFile(outPath);
-    console.log(`✓ ${label} → ${file}`);
+  // ── 2. Android foreground — safe-zone: shrink to 82%, transparent outside ──
+  // Place 840×840 centered inside 1024×1024 transparent canvas
+  const fgSize  = 840;
+  const fgPad   = Math.round((1024 - fgSize) / 2); // 92px each side
+  const fgBuf   = await sharp(SRC).resize(fgSize, fgSize).png().toBuffer();
+  await sharp({
+    create: { width: 1024, height: 1024, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } }
+  })
+    .composite([{ input: fgBuf, top: fgPad, left: fgPad }])
+    .png()
+    .toFile(path.join(OUT, 'android-icon-foreground.png'));
+  console.log('✓ Android foreground → android-icon-foreground.png');
+
+  // ── 3. Android monochrome — white silhouette on transparent ─────────────────
+  // Flatten white bg → convert to greyscale → threshold → white on transparent
+  const monoSize = 840;
+  const monoPad  = Math.round((1024 - monoSize) / 2);
+  const monoBuf  = await sharp(SRC)
+    .resize(monoSize, monoSize)
+    .flatten({ background: '#ffffff' }) // make alpha areas white
+    .greyscale()
+    .threshold(200)                    // white pixels stay white, dark ones black
+    .negate()                          // invert: leaf becomes white, bg black
+    .toColourspace('b-w')
+    .png()
+    .toBuffer();
+
+  // Re-composite: make black pixels transparent, keep white
+  const { data, info } = await sharp(monoBuf)
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+
+  // Build RGBA buffer: white where pixel is white, transparent elsewhere
+  const rgba = Buffer.alloc(info.width * info.height * 4);
+  for (let i = 0; i < info.width * info.height; i++) {
+    const v = data[i]; // greyscale value
+    rgba[i * 4 + 0] = 255; // R
+    rgba[i * 4 + 1] = 255; // G
+    rgba[i * 4 + 2] = 255; // B
+    rgba[i * 4 + 3] = v;   // Alpha = pixel brightness
   }
 
-  console.log('\nDone! 3 icons generated.');
+  const silhouetteBuf = await sharp(rgba, {
+    raw: { width: info.width, height: info.height, channels: 4 }
+  }).png().toBuffer();
+
+  await sharp({
+    create: { width: 1024, height: 1024, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } }
+  })
+    .composite([{ input: silhouetteBuf, top: monoPad, left: monoPad }])
+    .png()
+    .toFile(path.join(OUT, 'android-icon-monochrome.png'));
+  console.log('✓ Android monochrome → android-icon-monochrome.png');
+
+  // ── 4. Splash icon — centered leaf, no rounded corners, transparent bg ─────
+  await sharp(SRC)
+    .resize(512, 512)
+    .png()
+    .toFile(path.join(OUT, 'splash-icon.png'));
+  console.log('✓ Splash icon → splash-icon.png');
+
+  // ── 5. Favicon — 64×64 ───────────────────────────────────────────────────────
+  await sharp(SRC)
+    .resize(64, 64)
+    .png()
+    .toFile(path.join(OUT, 'favicon.png'));
+  console.log('✓ Favicon → favicon.png');
+
+  console.log('\nDone! 5 icons generated from icon-last.png');
 }
 
 generate().catch(err => { console.error(err); process.exit(1); });
