@@ -36,6 +36,16 @@ import {
 import { useTranslation } from '@/lib/i18n';
 
 // ─── Achievement builder ──────────────────────────────────────────────────────
+type AchievementProgress = { current: number; total: number };
+type Achievement = {
+  id: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  iconColor: string;
+  titleKey: string;
+  descKey: string;
+  unlocked: boolean;
+  progress?: AchievementProgress;
+};
 function buildAchievements(
   goals: Goal[],
   streak: number,
@@ -45,29 +55,29 @@ function buildAchievements(
   comebacks: number,
   completedGoals: number,
   completedStages: number,
-) {
+): Achievement[] {
   return [
-    { id: 'first_journey', icon: '🌱', titleKey: 'ach_first_journey_title', descKey: 'ach_first_journey_desc', unlocked: goals.length >= 1 },
-    { id: 'first_task', icon: '✅', titleKey: 'ach_first_task_title', descKey: 'ach_first_task_desc', unlocked: total >= 1 },
-    { id: 'streak_3', icon: '🔥', titleKey: 'ach_streak_3_title', descKey: 'ach_streak_3_desc', unlocked: streak >= 3, progress: { current: Math.min(streak, 3), total: 3 } },
-    { id: 'streak_7', icon: '🌙', titleKey: 'ach_streak_7_title', descKey: 'ach_streak_7_desc', unlocked: streak >= 7, progress: { current: Math.min(streak, 7), total: 7 } },
-    { id: 'streak_14', icon: '☪️', titleKey: 'ach_streak_14_title', descKey: 'ach_streak_14_desc', unlocked: streak >= 14, progress: { current: Math.min(streak, 14), total: 14 } },
-    { id: 'streak_30', icon: '🌕', titleKey: 'ach_streak_30_title', descKey: 'ach_streak_30_desc', unlocked: streak >= 30, progress: { current: Math.min(streak, 30), total: 30 } },
-    { id: 'streak_60', icon: '🌿', titleKey: 'ach_streak_60_title', descKey: 'ach_streak_60_desc', unlocked: streak >= 60, progress: { current: Math.min(streak, 60), total: 60 } },
-    { id: 'streak_100', icon: '⭐', titleKey: 'ach_streak_100_title', descKey: 'ach_streak_100_desc', unlocked: streak >= 100, progress: { current: Math.min(streak, 100), total: 100 } },
-    { id: 'tasks_10', icon: '🎯', titleKey: 'ach_tasks_10_title', descKey: 'ach_tasks_10_desc', unlocked: total >= 10, progress: { current: Math.min(total, 10), total: 10 } },
-    { id: 'tasks_50', icon: '📿', titleKey: 'ach_tasks_50_title', descKey: 'ach_tasks_50_desc', unlocked: total >= 50, progress: { current: Math.min(total, 50), total: 50 } },
-    { id: 'tasks_100', icon: '💎', titleKey: 'ach_tasks_100_title', descKey: 'ach_tasks_100_desc', unlocked: total >= 100, progress: { current: Math.min(total, 100), total: 100 } },
-    { id: 'tasks_250', icon: '🌟', titleKey: 'ach_tasks_250_title', descKey: 'ach_tasks_250_desc', unlocked: total >= 250, progress: { current: Math.min(total, 250), total: 250 } },
-    { id: 'tasks_500', icon: '🏅', titleKey: 'ach_tasks_500_title', descKey: 'ach_tasks_500_desc', unlocked: total >= 500, progress: { current: Math.min(total, 500), total: 500 } },
-    { id: 'perfect_day', icon: '💯', titleKey: 'ach_perfect_day_title', descKey: 'ach_perfect_day_desc', unlocked: perfectDayCount >= 1 },
-    { id: 'perfect_week', icon: '📅', titleKey: 'ach_perfect_week_title', descKey: 'ach_perfect_week_desc', unlocked: perfectWeekStreak >= 7, progress: { current: Math.min(perfectWeekStreak, 7), total: 7 } },
-    { id: 'perfect_30', icon: '✨', titleKey: 'ach_perfect_30_title', descKey: 'ach_perfect_30_desc', unlocked: perfectDayCount >= 30, progress: { current: Math.min(perfectDayCount, 30), total: 30 } },
-    { id: 'stage_complete', icon: '⭐', titleKey: 'ach_stage_title', descKey: 'ach_stage_desc', unlocked: completedStages >= 1 },
-    { id: 'five_stages', icon: '🕌', titleKey: 'ach_five_stages_title', descKey: 'ach_five_stages_desc', unlocked: completedStages >= 5, progress: { current: Math.min(completedStages, 5), total: 5 } },
-    { id: 'goal_complete', icon: '🏆', titleKey: 'ach_goal_title', descKey: 'ach_goal_desc', unlocked: completedGoals >= 1 },
-    { id: 'three_goals', icon: '🥇', titleKey: 'ach_three_goals_title', descKey: 'ach_three_goals_desc', unlocked: completedGoals >= 3, progress: { current: Math.min(completedGoals, 3), total: 3 } },
-    { id: 'comeback', icon: '🌱', titleKey: 'ach_comeback_title', descKey: 'ach_comeback_desc', unlocked: comebacks >= 1 },
+    { id: 'first_journey', icon: 'leaf-outline', iconColor: '#22C55E', titleKey: 'ach_first_journey_title', descKey: 'ach_first_journey_desc', unlocked: goals.length >= 1 },
+    { id: 'first_task', icon: 'checkmark-circle-outline', iconColor: '#16A34A', titleKey: 'ach_first_task_title', descKey: 'ach_first_task_desc', unlocked: total >= 1 },
+    { id: 'streak_3', icon: 'flame-outline', iconColor: '#F97316', titleKey: 'ach_streak_3_title', descKey: 'ach_streak_3_desc', unlocked: streak >= 3, progress: { current: Math.min(streak, 3), total: 3 } },
+    { id: 'streak_7', icon: 'moon-outline', iconColor: '#A78BFA', titleKey: 'ach_streak_7_title', descKey: 'ach_streak_7_desc', unlocked: streak >= 7, progress: { current: Math.min(streak, 7), total: 7 } },
+    { id: 'streak_14', icon: 'moon', iconColor: '#8B5CF6', titleKey: 'ach_streak_14_title', descKey: 'ach_streak_14_desc', unlocked: streak >= 14, progress: { current: Math.min(streak, 14), total: 14 } },
+    { id: 'streak_30', icon: 'planet-outline', iconColor: '#EAB308', titleKey: 'ach_streak_30_title', descKey: 'ach_streak_30_desc', unlocked: streak >= 30, progress: { current: Math.min(streak, 30), total: 30 } },
+    { id: 'streak_60', icon: 'leaf', iconColor: '#14B8A6', titleKey: 'ach_streak_60_title', descKey: 'ach_streak_60_desc', unlocked: streak >= 60, progress: { current: Math.min(streak, 60), total: 60 } },
+    { id: 'streak_100', icon: 'star-outline', iconColor: '#F59E0B', titleKey: 'ach_streak_100_title', descKey: 'ach_streak_100_desc', unlocked: streak >= 100, progress: { current: Math.min(streak, 100), total: 100 } },
+    { id: 'tasks_10', icon: 'flag-outline', iconColor: '#0EA5E9', titleKey: 'ach_tasks_10_title', descKey: 'ach_tasks_10_desc', unlocked: total >= 10, progress: { current: Math.min(total, 10), total: 10 } },
+    { id: 'tasks_50', icon: 'list-outline', iconColor: '#8B5CF6', titleKey: 'ach_tasks_50_title', descKey: 'ach_tasks_50_desc', unlocked: total >= 50, progress: { current: Math.min(total, 50), total: 50 } },
+    { id: 'tasks_100', icon: 'diamond-outline', iconColor: '#6366F1', titleKey: 'ach_tasks_100_title', descKey: 'ach_tasks_100_desc', unlocked: total >= 100, progress: { current: Math.min(total, 100), total: 100 } },
+    { id: 'tasks_250', icon: 'sparkles-outline', iconColor: '#F59E0B', titleKey: 'ach_tasks_250_title', descKey: 'ach_tasks_250_desc', unlocked: total >= 250, progress: { current: Math.min(total, 250), total: 250 } },
+    { id: 'tasks_500', icon: 'medal-outline', iconColor: '#CA8A04', titleKey: 'ach_tasks_500_title', descKey: 'ach_tasks_500_desc', unlocked: total >= 500, progress: { current: Math.min(total, 500), total: 500 } },
+    { id: 'perfect_day', icon: 'sunny-outline', iconColor: '#EC4899', titleKey: 'ach_perfect_day_title', descKey: 'ach_perfect_day_desc', unlocked: perfectDayCount >= 1 },
+    { id: 'perfect_week', icon: 'calendar-outline', iconColor: '#0D9488', titleKey: 'ach_perfect_week_title', descKey: 'ach_perfect_week_desc', unlocked: perfectWeekStreak >= 7, progress: { current: Math.min(perfectWeekStreak, 7), total: 7 } },
+    { id: 'perfect_30', icon: 'sparkles', iconColor: '#14B8A6', titleKey: 'ach_perfect_30_title', descKey: 'ach_perfect_30_desc', unlocked: perfectDayCount >= 30, progress: { current: Math.min(perfectDayCount, 30), total: 30 } },
+    { id: 'stage_complete', icon: 'ribbon-outline', iconColor: '#F59E0B', titleKey: 'ach_stage_title', descKey: 'ach_stage_desc', unlocked: completedStages >= 1 },
+    { id: 'five_stages', icon: 'layers-outline', iconColor: '#0F766E', titleKey: 'ach_five_stages_title', descKey: 'ach_five_stages_desc', unlocked: completedStages >= 5, progress: { current: Math.min(completedStages, 5), total: 5 } },
+    { id: 'goal_complete', icon: 'trophy-outline', iconColor: '#A855F7', titleKey: 'ach_goal_title', descKey: 'ach_goal_desc', unlocked: completedGoals >= 1 },
+    { id: 'three_goals', icon: 'podium-outline', iconColor: '#EAB308', titleKey: 'ach_three_goals_title', descKey: 'ach_three_goals_desc', unlocked: completedGoals >= 3, progress: { current: Math.min(completedGoals, 3), total: 3 } },
+    { id: 'comeback', icon: 'refresh-outline', iconColor: '#22C55E', titleKey: 'ach_comeback_title', descKey: 'ach_comeback_desc', unlocked: comebacks >= 1 },
   ];
 }
 
@@ -119,6 +129,27 @@ function WeekStrip({ goals, selectedDate, onSelectDate, isDark }: { goals: Goal[
         const isSelected = d.date === selectedDate;
         const dayKey = DOW_KEYS[new Date(d.date).getDay()];
         const dotColor = WEEK_DOT_COLOR[d.level];
+        const isFuture = d.level === 'future';
+
+        // Level color used for accenting (fallback to teal for future/empty)
+        const levelAccent = !isFuture && dotColor !== 'transparent' ? dotColor : (isDark ? '#1B5E58' : '#CBD5E1');
+
+        // Border: selected → level color; today (not selected) → teal; else default
+        const borderColor = isSelected ? levelAccent : isToday ? '#0D9488' : cardBorder;
+        const borderWidth = isSelected ? 2.5 : isToday ? 2 : 1.5;
+
+        // Background: selected → 10% level accent; else card bg
+        const cellBg = isSelected && !isFuture ? levelAccent + '1A' : cardBg;
+
+        // Header band color for calendar icon look
+        const headerBg = isSelected
+          ? levelAccent + '22'
+          : isToday
+          ? '#0D9488' + '18'
+          : isDark ? '#1B5E5825' : '#F0FDFA';
+
+        const dayLabelColor = isSelected ? levelAccent : isToday ? '#0D9488' : '#5F8B8A';
+        const numColor = isSelected ? levelAccent : isToday ? '#0D9488' : isDark ? '#CCFBF1' : '#134E4A';
 
         return (
           <TouchableOpacity
@@ -128,23 +159,43 @@ function WeekStrip({ goals, selectedDate, onSelectDate, isDark }: { goals: Goal[
             style={{
               flex: 1,
               marginHorizontal: 3,
-              height: 74,
-              borderRadius: 18,
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              paddingVertical: 10,
-              backgroundColor: cardBg,
-              borderWidth: isSelected ? 2.5 : isToday ? 2 : 1.5,
-              borderColor: isSelected ? '#F59E0B' : isToday ? '#0D9488' : cardBorder,
+              borderRadius: 14,
+              overflow: 'hidden',
+              backgroundColor: cellBg,
+              borderWidth,
+              borderColor,
             }}
           >
-            <Text style={{ fontSize: 10, fontWeight: '700', color: '#5F8B8A', letterSpacing: 0.5 }}>
-              {t(dayKey)}
-            </Text>
-            <Text style={{ fontSize: 15, fontWeight: isToday ? '800' : '500', color: isToday ? '#0D9488' : isDark ? '#CCFBF1' : '#134E4A' }}>
-              {format(new Date(d.date), 'd')}
-            </Text>
-            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: dotColor }} />
+            {/* Day name header band */}
+            <View style={{
+              width: '100%',
+              alignItems: 'center',
+              paddingVertical: 5,
+              backgroundColor: headerBg,
+              borderBottomWidth: 0.5,
+              borderBottomColor: isSelected ? levelAccent + '30' : isDark ? '#1B5E5840' : '#E2E8F050',
+            }}>
+              <Text style={{ fontSize: 9, fontWeight: '700', color: dayLabelColor, letterSpacing: 0.4, textTransform: 'uppercase' }}>
+                {t(dayKey)}
+              </Text>
+            </View>
+
+            {/* Day number */}
+            <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 7 }}>
+              <Text style={{ fontSize: 17, fontWeight: isToday || isSelected ? '800' : '600', color: numColor, lineHeight: 20 }}>
+                {format(new Date(d.date), 'd')}
+              </Text>
+            </View>
+
+            {/* Activity dot */}
+            <View style={{ alignItems: 'center', paddingBottom: 7 }}>
+              <View style={{
+                width: 7,
+                height: 7,
+                borderRadius: 3.5,
+                backgroundColor: isFuture ? 'transparent' : dotColor,
+              }} />
+            </View>
           </TouchableOpacity>
         );
       })}
@@ -315,7 +366,7 @@ function MonthlyCalendar({ goals, selectedDate, onSelectDate, isDark }: { goals:
 }
 
 // ─── Achievement Card ─────────────────────────────────────────────────────────
-function AchievementCard({ icon, title, desc, unlocked, progress, isDark }: { icon: string; title: string; desc: string; unlocked: boolean; progress?: { current: number; total: number }; isDark: boolean }) {
+function AchievementCard({ icon, iconColor, title, desc, unlocked, progress, isDark }: { icon: keyof typeof Ionicons.glyphMap; iconColor: string; title: string; desc: string; unlocked: boolean; progress?: { current: number; total: number }; isDark: boolean }) {
   const pct = progress ? progress.current / progress.total : 0;
   const showProgress = !unlocked && !!progress && progress.current > 0;
 
@@ -330,7 +381,7 @@ function AchievementCard({ icon, title, desc, unlocked, progress, isDark }: { ic
     <View style={{ flex: 1, borderRadius: 22, padding: 14, borderWidth: 1.5, borderColor: cardBorder, backgroundColor: cardBg, opacity: unlocked ? 1 : showProgress ? 0.85 : 0.55 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
         <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: iconBg, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ fontSize: 22 }}>{icon}</Text>
+          <Ionicons name={icon} size={22} color={unlocked ? iconColor : isDark ? '#2D4A47' : '#9CA3AF'} />
         </View>
         {unlocked
           ? <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: '#0D9488', alignItems: 'center', justifyContent: 'center' }}><Ionicons name="checkmark" size={13} color="#FFF" /></View>
@@ -450,7 +501,7 @@ export default function InsightsScreen() {
           {pairs.map((pair, i) => (
             <View key={i} style={{ flexDirection: 'row', gap: 12, marginBottom: 12 }}>
               {pair.map(a => (
-                <AchievementCard key={a.id} icon={a.icon} title={t(a.titleKey as any)} desc={t(a.descKey as any)} unlocked={a.unlocked} progress={(a as any).progress} isDark={isDarkMode} />
+                <AchievementCard key={a.id} icon={a.icon} iconColor={a.iconColor} title={t(a.titleKey as any)} desc={t(a.descKey as any)} unlocked={a.unlocked} progress={a.progress} isDark={isDarkMode} />
               ))}
               {pair.length === 1 && <View style={{ flex: 1 }} />}
             </View>
