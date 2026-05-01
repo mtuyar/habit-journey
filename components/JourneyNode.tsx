@@ -1,142 +1,144 @@
-import React from 'react';
-import { View, TouchableOpacity } from 'react-native';
-import { Text } from '@/components/ui/Text';
-import { Group } from '@/store/useProgressStore';
-import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { cn } from '@/components/ui/Card';
-import { useTranslation } from '@/lib/i18n';
+import React from "react";
+import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { XStack, YStack, useTheme } from "tamagui";
+import { Text } from "@/components/ui/Text";
+import { Card } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { ProgressBar } from "@/components/ui/ProgressBar";
+import { Group } from "@/store/useProgressStore";
+import { useTranslation } from "@/lib/i18n";
 
-export function JourneyNode({ group, index, isLast }: { group: Group; index: number; isLast: boolean }) {
+export function JourneyNode({
+  group,
+  index,
+  isLast,
+  prevCompleted = false,
+}: {
+  group: Group;
+  index: number;
+  isLast: boolean;
+  prevCompleted?: boolean;
+}) {
   const { t } = useTranslation();
+  const theme = useTheme();
+
   const totalTasksPossible = group.durationInDays * group.tasks.length;
   let completedTasks = 0;
-
-  Object.values(group.progress || {}).forEach(day => {
-    Object.values(day).forEach(done => { if (done) completedTasks++; });
+  Object.values(group.progress || {}).forEach((day) => {
+    Object.values(day).forEach((done) => {
+      if (done) completedTasks++;
+    });
   });
+  const ratio = totalTasksPossible === 0 ? 0 : completedTasks / totalTasksPossible;
+  const perc = Math.round(ratio * 100);
 
-  const pb = totalTasksPossible === 0 ? 0 : completedTasks / totalTasksPossible;
-  const perc = Math.round(pb * 100);
+  const isLocked = group.status === "locked";
+  const isActive = group.status === "active";
+  const isCompleted = group.status === "completed";
 
-  const isLocked = group.status === 'locked';
-  const isActive = group.status === 'active';
-  const isCompleted = group.status === 'completed';
+  const accent = theme.accent?.val ?? "#0D9488";
+  const success = theme.success?.val ?? "#059669";
+  const locked = theme.locked?.val ?? "#CBD5E1";
 
-  const nodeColor = isCompleted ? '#059669' : isActive ? '#0D9488' : '#B2F0E8';
-  const barColor = isCompleted ? '#059669' : '#0D9488';
+  const nodeBorder = isCompleted ? success : isActive ? accent : locked;
 
   return (
-    <View className="flex-row items-stretch">
-      {/* Left Vertical Track */}
-      <View className="w-12 items-center mr-3 relative">
-        {!isLast && (
-          <View
-            className="absolute top-8 w-[3px] bottom-[-28px] rounded-full"
-            style={{ backgroundColor: isCompleted ? '#059669' : '#B2F0E8' }}
+    <XStack alignItems="stretch">
+      {/* Left vertical timeline track */}
+      <YStack
+        width={48}
+        alignItems="center"
+        justifyContent="center"
+        marginRight={12}
+        position="relative"
+      >
+        {index > 0 && (
+          <YStack
+            position="absolute"
+            top={0}
+            height="50%"
+            width={3}
+            borderRadius={99}
+            backgroundColor={prevCompleted ? success : locked}
           />
         )}
-
-        <View
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            marginTop: 12,
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: isCompleted ? '#059669' : '#FFFFFF',
-            borderWidth: isCompleted ? 0 : 2,
-            borderColor: nodeColor,
-            zIndex: 10,
-          }}
+        {!isLast && (
+          <YStack
+            position="absolute"
+            top="50%"
+            bottom={-20}
+            width={3}
+            borderRadius={99}
+            backgroundColor={isCompleted ? success : locked}
+          />
+        )}
+        <YStack
+          width={40}
+          height={40}
+          borderRadius={20}
+          marginBottom={24}
+          alignItems="center"
+          justifyContent="center"
+          backgroundColor={isCompleted ? success : "$surface"}
+          borderWidth={isCompleted ? 0 : 2}
+          borderColor={nodeBorder}
+          zIndex={10}
         >
           {isCompleted ? (
             <Ionicons name="checkmark" size={18} color="#FFF" />
           ) : isActive ? (
-            <Text style={{ color: '#0D9488', fontWeight: '800', fontSize: 13 }}>{index + 1}</Text>
+            <Text color={accent} fontWeight="800" fontSize={13}>
+              {index + 1}
+            </Text>
           ) : (
-            <Ionicons name="lock-closed" size={13} color="#B2F0E8" />
+            <Ionicons name="lock-closed" size={13} color={locked} />
           )}
-        </View>
-      </View>
+        </YStack>
+      </YStack>
 
-      {/* Main Content Card */}
-      <TouchableOpacity
-        activeOpacity={0.65}
+      {/* Main card */}
+      <Card
+        flex={1}
+        marginBottom={20}
+        opacity={isLocked ? 0.5 : 1}
+        interactive
         onPress={() => router.push(`/group/${group.id}`)}
-        className={cn(
-          'flex-1 px-5 py-4 mb-5 rounded-[28px] border',
-          isLocked
-            ? 'bg-journeyCard dark:bg-journeyDarkCard border-journeyBorder dark:border-journeyDarkBorder opacity-50'
-            : isCompleted
-            ? 'bg-journeyCard dark:bg-journeyDarkCard border-journeySuccess/30'
-            : 'bg-journeyCard dark:bg-journeyDarkCard border-journeyBorder dark:border-journeyDarkBorder',
-          isActive && 'border-journeyAccent/40'
-        )}
       >
-        {/* Status badge */}
         {!isLocked && (
-          <View className="flex-row items-center justify-between mb-2">
-            <View className="flex-row items-center gap-2">
-              <View
-                style={{
-                  paddingHorizontal: 8,
-                  paddingVertical: 3,
-                  borderRadius: 99,
-                  backgroundColor: isCompleted ? '#05996918' : '#0D948818',
-                  alignSelf: 'flex-start',
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 10,
-                    fontWeight: '700',
-                    letterSpacing: 1,
-                    textTransform: 'uppercase',
-                    color: isCompleted ? '#059669' : '#0D9488',
-                  }}
-                >
-                  {isCompleted ? t('statusCompleted') : t('statusActive')}
-                </Text>
-              </View>
+          <XStack alignItems="center" justifyContent="space-between" marginBottom={8}>
+            <XStack alignItems="center" gap={8}>
+              <Badge tone={isCompleted ? "success" : "accent"}>
+                {isCompleted ? t("statusCompleted") : t("statusActive")}
+              </Badge>
               {!!group.retryCount && group.retryCount > 0 && (
-                <View style={{ paddingHorizontal: 7, paddingVertical: 3, borderRadius: 99, backgroundColor: '#F59E0B18' }}>
-                  <Text style={{ fontSize: 10, fontWeight: '700', letterSpacing: 0.8, color: '#D97706' }}>
-                    {t('retryAttempt')} #{group.retryCount + 1}
-                  </Text>
-                </View>
+                <Badge tone="warning">
+                  {t("retryAttempt")} #{group.retryCount + 1}
+                </Badge>
               )}
-            </View>
-            {!isLocked && (
-              <Text style={{ fontSize: 11, color: '#5F8B8A', fontWeight: '600' }}>
-                {perc}%
-              </Text>
-            )}
-          </View>
+            </XStack>
+            <Text fontSize={11} color="$textMuted" fontWeight="600">
+              {perc}%
+            </Text>
+          </XStack>
         )}
 
         <Text
-          className={cn(
-            'text-[17px] tracking-tight mb-1',
-            isLocked
-              ? 'text-journeyMuted font-normal'
-              : 'text-journeyText dark:text-journeyDarkText font-semibold'
-          )}
+          fontSize={17}
+          letterSpacing={-0.2}
+          marginBottom={4}
+          fontWeight={isLocked ? "400" : "600"}
+          color={isLocked ? "$textMuted" : "$text"}
         >
           {group.name}
         </Text>
 
-        <Text className="text-[11px] text-journeyMuted tracking-wide font-medium mb-3">
-          {group.durationInDays} {t('days')} · {group.tasks.length} {t('task')}
+        <Text fontSize={11} color="$textMuted" letterSpacing={0.2} fontWeight="500" marginBottom={12}>
+          {group.durationInDays} {t("days")} · {group.tasks.length} {t("task")}
         </Text>
 
-        {!isLocked && (
-          <View style={{ width: '100%', height: 5, backgroundColor: '#B2F0E8', borderRadius: 99, overflow: 'hidden' }}>
-            <View style={{ width: `${pb * 100}%`, height: '100%', backgroundColor: barColor, borderRadius: 99 }} />
-          </View>
-        )}
-      </TouchableOpacity>
-    </View>
+        {!isLocked && <ProgressBar value={ratio} tone={isCompleted ? "success" : "accent"} />}
+      </Card>
+    </XStack>
   );
 }

@@ -1,54 +1,72 @@
-import React, { useState } from 'react';
-import { ScrollView, View, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
-import { Text } from '@/components/ui/Text';
-import { router, useLocalSearchParams } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { useProgressStore, Group, Task } from '@/store/useProgressStore';
-import { cn } from '@/components/ui/Card';
-import { useTranslation } from '@/lib/i18n';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSettingsStore } from '@/store/useSettingsStore';
-import { generateJourneyRoadmap } from '@/lib/ai';
+import React, { useRef, useState } from "react";
+import {
+  ScrollView,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
+} from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { XStack, YStack, useTheme } from "tamagui";
+import { Text } from "@/components/ui/Text";
+import { Button } from "@/components/ui/Button";
+import { IconButton } from "@/components/ui/IconButton";
+import { useProgressStore, Group } from "@/store/useProgressStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
+import { useTranslation } from "@/lib/i18n";
+import { generateJourneyRoadmap } from "@/lib/ai";
 
-type DraftGroup = Omit<Group, 'id' | 'startDate' | 'progress' | 'status'>;
+type DraftGroup = Omit<Group, "id" | "startDate" | "progress" | "status">;
 
 export default function CreateGoalScreen() {
   const { editGoalId } = useLocalSearchParams<{ editGoalId: string }>();
-  const { t } = useTranslation();
+  const { t, upper } = useTranslation();
+  const theme = useTheme();
 
-  const goals = useProgressStore(state => state.goals);
-  const addGoal = useProgressStore(state => state.addGoal);
-  const updateGoal = useProgressStore(state => state.updateGoal);
+  const goals = useProgressStore((s) => s.goals);
+  const addGoal = useProgressStore((s) => s.addGoal);
+  const updateGoal = useProgressStore((s) => s.updateGoal);
 
-  const editingGoal = goals.find(g => g.id === editGoalId);
+  const editingGoal = goals.find((g) => g.id === editGoalId);
 
-  const [name, setName] = useState(editingGoal ? editingGoal.name : '');
+  const [name, setName] = useState(editingGoal ? editingGoal.name : "");
   const [groups, setGroups] = useState<DraftGroup[]>(
     editingGoal ? editingGoal.groups : []
   );
 
-  // Inline stage form state
-  const [groupName, setGroupName] = useState('');
-  const [groupDuration, setGroupDuration] = useState('');
+  const [groupName, setGroupName] = useState("");
+  const [groupDuration, setGroupDuration] = useState("");
   const [tasks, setTasks] = useState<{ name: string; description?: string }[]>([]);
-  const [currentTask, setCurrentTask] = useState('');
-  const [currentTaskDesc, setCurrentTaskDesc] = useState('');
+  const [currentTask, setCurrentTask] = useState("");
+  const [currentTaskDesc, setCurrentTaskDesc] = useState("");
   const [editingGroupIndex, setEditingGroupIndex] = useState<number | null>(null);
 
-  // AI Integration
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
-  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiPrompt, setAiPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
-  const geminiApiKey = useSettingsStore(state => state.geminiApiKey);
+  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+  const [isStageModalOpen, setIsStageModalOpen] = useState(false);
+  const [openMenuIndex, setOpenMenuIndex] = useState<number | null>(null);
+  const geminiApiKey = useSettingsStore((s) => s.geminiApiKey);
+
+  const scrollRef = useRef<ScrollView>(null);
+
+  const muted = theme.textMuted?.val ?? "#64748B";
+  const subtle = theme.textSubtle?.val ?? "#94A3B8";
+  const accent = theme.accent?.val ?? "#0D9488";
+  const textColor = theme.text?.val ?? "#0F172A";
+  const bg = theme.bg?.val ?? "#F8FAFC";
 
   // ── Stage CRUD ────────────────────────────────────────────────────────────────
 
   const resetForm = () => {
-    setGroupName('');
-    setGroupDuration('');
+    setGroupName("");
+    setGroupDuration("");
     setTasks([]);
-    setCurrentTask('');
-    setCurrentTaskDesc('');
+    setCurrentTask("");
+    setCurrentTaskDesc("");
     setEditingGroupIndex(null);
   };
 
@@ -56,10 +74,25 @@ export default function CreateGoalScreen() {
     const g = groups[index];
     setGroupName(g.name);
     setGroupDuration(g.durationInDays.toString());
-    setTasks(g.tasks.map(tk => ({ name: tk.name, description: tk.description })));
-    setCurrentTask('');
-    setCurrentTaskDesc('');
+    setTasks(g.tasks.map((tk) => ({ name: tk.name, description: tk.description })));
+    setCurrentTask("");
+    setCurrentTaskDesc("");
     setEditingGroupIndex(index);
+  };
+
+  const openNewStageModal = () => {
+    resetForm();
+    setIsStageModalOpen(true);
+  };
+
+  const openEditStageModal = (index: number) => {
+    handleEditExistingGroup(index);
+    setIsStageModalOpen(true);
+  };
+
+  const closeStageModal = () => {
+    setIsStageModalOpen(false);
+    resetForm();
   };
 
   const handleRemoveGroup = (index: number) => {
@@ -90,10 +123,26 @@ export default function CreateGoalScreen() {
 
   const handleAddTask = () => {
     if (currentTask.trim()) {
-      setTasks([...tasks, { name: currentTask.trim(), description: currentTaskDesc.trim() || undefined }]);
-      setCurrentTask('');
-      setCurrentTaskDesc('');
+      setTasks([
+        ...tasks,
+        { name: currentTask.trim(), description: currentTaskDesc.trim() || undefined },
+      ]);
+      setCurrentTask("");
+      setCurrentTaskDesc("");
+      setIsTaskModalOpen(false);
     }
+  };
+
+  const openTaskModal = () => {
+    setCurrentTask("");
+    setCurrentTaskDesc("");
+    setIsTaskModalOpen(true);
+  };
+
+  const closeTaskModal = () => {
+    setIsTaskModalOpen(false);
+    setCurrentTask("");
+    setCurrentTaskDesc("");
   };
 
   const handleRemoveTask = (idx: number) => {
@@ -105,7 +154,11 @@ export default function CreateGoalScreen() {
     const newGroup: DraftGroup = {
       name: groupName.trim(),
       durationInDays: Number(groupDuration),
-      tasks: tasks.map(tk => ({ id: Math.random().toString(), name: tk.name, description: tk.description })),
+      tasks: tasks.map((tk) => ({
+        id: Math.random().toString(),
+        name: tk.name,
+        description: tk.description,
+      })),
     };
 
     if (editingGroupIndex !== null) {
@@ -114,44 +167,54 @@ export default function CreateGoalScreen() {
       setGroups(updated);
     } else {
       setGroups([...groups, newGroup]);
+      requestAnimationFrame(() => scrollRef.current?.scrollToEnd({ animated: true }));
     }
     resetForm();
+    setIsStageModalOpen(false);
   };
 
-  // ── AI ────────────────────────────────────────────────────────────────────────
-
   const handleAiGeneration = async () => {
-    if (!geminiApiKey) { alert(t('aiErrorNoKey')); return; }
+    if (!geminiApiKey) {
+      Alert.alert(t("aiErrorNoKey"));
+      return;
+    }
     if (!aiPrompt.trim()) return;
     setIsGenerating(true);
     try {
       const roadmap = await generateJourneyRoadmap(aiPrompt, geminiApiKey);
       setName(roadmap.goalName);
       setGroups(roadmap.groups as DraftGroup[]);
-      setAiPrompt('');
+      setAiPrompt("");
       setIsAiModalOpen(false);
     } catch {
-      alert(t('aiErrorGeneration'));
+      Alert.alert(t("aiErrorGeneration"));
     } finally {
       setIsGenerating(false);
     }
   };
 
-  // ── Save Goal ─────────────────────────────────────────────────────────────────
-
   const handleSaveGoal = () => {
-    if (!name.trim()) { alert(t('errorEmptyGoalName')); return; }
-    if (groups.length === 0) { alert(t('errorZeroTasks')); return; }
-    if (groups.some(g => g.tasks.length === 0)) { alert(t('errorZeroTasks')); return; }
+    if (!name.trim()) {
+      Alert.alert(t("errorEmptyGoalName"));
+      return;
+    }
+    if (groups.length === 0 || groups.some((g) => g.tasks.length === 0)) {
+      Alert.alert(t("errorZeroTasks"));
+      return;
+    }
 
     if (editingGoal) {
       const updatedGroups = groups.map((g, i) => {
-        const existingGr = editingGoal.groups.find(eg => eg.name === g.name);
+        const existingGr = editingGoal.groups.find((eg) => eg.name === g.name);
         return {
           ...g,
           id: existingGr ? existingGr.id : Math.random().toString(),
-          startDate: existingGr ? existingGr.startDate : (i === 0 ? new Date().toISOString() : null),
-          status: existingGr ? existingGr.status : (i === 0 ? 'active' : 'locked'),
+          startDate: existingGr
+            ? existingGr.startDate
+            : i === 0
+            ? new Date().toISOString()
+            : null,
+          status: existingGr ? existingGr.status : i === 0 ? "active" : "locked",
           progress: existingGr ? existingGr.progress : {},
         } as Group;
       });
@@ -161,364 +224,375 @@ export default function CreateGoalScreen() {
       addGoal({
         id: Math.random().toString(),
         name: name.trim(),
-        targetLevel: '',
+        targetLevel: "",
         groups: groups.map((g, i) => ({
           ...g,
           id: Math.random().toString(),
           startDate: i === 0 ? new Date().toISOString() : null,
-          status: i === 0 ? 'active' : 'locked',
+          status: i === 0 ? "active" : "locked",
           progress: {},
         })),
       });
       if (router.canGoBack()) router.back();
-      else router.replace('/');
+      else router.replace("/");
     }
   };
 
-  const isFormValid = groupName.trim() && groupDuration.trim() && !isNaN(Number(groupDuration));
+  const isFormValid =
+    groupName.trim() && groupDuration.trim() && !isNaN(Number(groupDuration));
   const canSaveGoal = name.trim() && groups.length > 0;
 
   return (
-    <SafeAreaView className="flex-1 bg-journeyBg dark:bg-journeyDarkBg" edges={['top']}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-      >
-        {/* ── Header ── */}
-        <View className="px-6 pt-4 pb-2 flex-row items-center justify-between">
-          <TouchableOpacity
+    <SafeAreaView style={{ flex: 1, backgroundColor: bg }} edges={["top"]}>
+      <KeyboardAvoidingView style={{ flex: 1 }}>
+        <XStack
+          paddingHorizontal={24}
+          paddingTop={16}
+          paddingBottom={8}
+          alignItems="center"
+          justifyContent="space-between"
+        >
+          <IconButton
+            icon="close-outline"
+            size="lg"
             onPress={() => router.back()}
-            className="w-10 h-10 items-center justify-center -ml-2"
+            marginLeft={-8}
+          />
+          <Text
+            fontSize={11}
+            color="$textMuted"
+            fontWeight="700"
+            letterSpacing={3}
           >
-            <Ionicons name="close-outline" size={28} color="#94A3B8" />
-          </TouchableOpacity>
-          <Text className="text-[11px] text-journeyMuted font-bold uppercase tracking-[3px]">
-            {editingGoal ? t('editJourney') : t('planning')}
+            {upper(editingGoal ? t("editJourney") : t("planning"))}
           </Text>
-          <View className="w-10 h-10" />
-        </View>
+          <YStack width={44} height={44} />
+        </XStack>
 
         <ScrollView
+          ref={scrollRef}
+          style={{ flex: 1 }}
           contentContainerStyle={{ padding: 24, paddingBottom: 160 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          automaticallyAdjustKeyboardInsets
         >
-
-          {/* ── AI Button (new only) ── */}
-          {!editingGoal && (
-            <View>
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={() => setIsAiModalOpen(true)}
-                className="flex-row items-center bg-[#F0FDF4] dark:bg-journeyDarkCard border border-[#14B8A6]/30 dark:border-[#14B8A6]/40 p-5 rounded-[24px] mb-6 shadow-sm"
+          {!editingGoal && !!geminiApiKey?.trim() && (
+            <XStack
+              backgroundColor="$accentSoft"
+              borderColor="$border"
+              borderWidth={1}
+              padding={20}
+              borderRadius={20}
+              marginBottom={24}
+              alignItems="center"
+              gap={16}
+              onPress={() => setIsAiModalOpen(true)}
+              pressStyle={{ opacity: 0.85 }}
+            >
+              <YStack
+                width={44}
+                height={44}
+                backgroundColor="$surface"
+                borderRadius={14}
+                borderColor="$border"
+                borderWidth={1}
+                alignItems="center"
+                justifyContent="center"
               >
-                <View className="w-11 h-11 bg-white dark:bg-journeyDarkBg rounded-[14px] items-center justify-center mr-4 border border-[#14B8A6]/20 shadow-[0_4px_12px_rgba(20,184,166,0.15)]">
-                  <Ionicons name="sparkles" size={20} color="#14B8A6" />
-                </View>
-                <View className="flex-1">
-                  <Text className="text-[15px] font-extrabold text-[#0D9488] dark:text-[#5EEAD4] tracking-tight">{t('aiCreateButton')}</Text>
-                  <Text className="text-[11px] text-[#0F766E]/70 dark:text-[#99F6E4]/60 mt-0.5 leading-snug">{t('aiSubtitle')}</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={18} color="#0F766E" />
-              </TouchableOpacity>
-            </View>
+                <Ionicons name="sparkles" size={20} color={accent} />
+              </YStack>
+              <YStack flex={1}>
+                <Text fontSize={15} fontWeight="800" color="$accent" letterSpacing={-0.2}>
+                  {t("aiCreateButton")}
+                </Text>
+                <Text fontSize={11} color="$textMuted" marginTop={2} lineHeight={16}>
+                  {t("aiSubtitle")}
+                </Text>
+              </YStack>
+              <Ionicons name="chevron-forward" size={18} color={accent} />
+            </XStack>
           )}
 
-
-          {/* ── Goal Name ── */}
-          <View className="mb-8">
+          <YStack marginBottom={32}>
             <TextInput
-              className="border-b-2 border-journeyBorder/50 dark:border-journeyDarkBorder/50 py-3 text-[22px] font-semibold tracking-tight text-journeyText dark:text-journeyDarkText"
-              placeholder={t('journeySubject')}
-              placeholderTextColor="#94A3B8"
+              placeholder={t("journeySubject")}
+              placeholderTextColor={subtle}
               value={name}
               onChangeText={setName}
+              style={{
+                borderBottomWidth: 2,
+                borderBottomColor: theme.border?.val ?? "#E2E8F0",
+                paddingVertical: 12,
+                fontSize: 22,
+                fontWeight: "600",
+                color: textColor,
+                letterSpacing: -0.3,
+              }}
             />
-          </View>
+          </YStack>
 
-          {/* ── Stage List ── */}
           {groups.length > 0 && (
-            <View className="mb-6">
-              <Text className="text-[11px] font-bold text-journeyMuted uppercase tracking-[2px] mb-3">
-                {t('currentStages')} · {groups.length}
+            <YStack marginBottom={24}>
+              <Text
+                fontSize={11}
+                fontWeight="700"
+                color="$textMuted"
+                letterSpacing={2}
+                marginBottom={12}
+              >
+                {upper(`${t("currentStages")} · ${groups.length}`)}
               </Text>
 
               {groups.map((g, i) => {
                 const isEditing = editingGroupIndex === i;
+                const isMenuOpen = openMenuIndex === i;
                 return (
-                  <View
+                  <XStack
                     key={`${g.name}-${i}`}
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      backgroundColor: isEditing ? '#F0FDFA' : '#fff',
-                      borderColor: isEditing ? '#0D9488' : '#E2E8F0',
-                      borderWidth: 1.5,
-                      borderRadius: 20,
-                      padding: 12,
-                      marginBottom: 8,
-                    }}
-                    className="dark:bg-journeyDarkCard dark:border-journeyDarkBorder"
+                    alignItems="center"
+                    backgroundColor={isEditing ? "$accentSoft" : "$surface"}
+                    borderColor={isEditing ? "$accent" : "$border"}
+                    borderWidth={1.5}
+                    borderRadius={20}
+                    padding={12}
+                    marginBottom={8}
+                    position="relative"
+                    zIndex={isMenuOpen ? 100 : undefined}
                   >
-                    {/* Number badge */}
-                    <View
-                      style={{
-                        width: 30,
-                        height: 30,
-                        borderRadius: 10,
-                        backgroundColor: isEditing ? '#0D9488' : '#F1F5F9',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        marginRight: 12,
-                      }}
+                    <YStack
+                      width={30}
+                      height={30}
+                      borderRadius={10}
+                      backgroundColor={isEditing ? "$accent" : "$surfaceAlt"}
+                      alignItems="center"
+                      justifyContent="center"
+                      marginRight={12}
                     >
-                      <Text style={{ fontSize: 13, fontWeight: '800', color: isEditing ? '#fff' : '#64748B' }}>
+                      <Text
+                        fontSize={13}
+                        fontWeight="800"
+                        color={isEditing ? "$textInverse" : "$textMuted"}
+                      >
                         {i + 1}
                       </Text>
-                    </View>
+                    </YStack>
 
-                    {/* Content */}
-                    <View style={{ flex: 1 }}>
+                    <YStack flex={1}>
                       <Text
-                        style={{ fontSize: 14, fontWeight: '700', color: isEditing ? '#0D9488' : '#1E293B' }}
-                        className="dark:text-journeyDarkText"
+                        fontSize={14}
+                        fontWeight="700"
+                        color={isEditing ? "$accent" : "$text"}
                         numberOfLines={1}
                       >
                         {g.name}
                       </Text>
-                      <Text style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }}>
-                        {g.durationInDays} {t('days')} · {g.tasks.length} {t('task')}
+                      <Text fontSize={11} color="$textSubtle" marginTop={2}>
+                        {g.durationInDays} {t("days")} · {g.tasks.length} {t("task")}
                       </Text>
-                    </View>
+                    </YStack>
 
-                    {/* Reorder + Actions */}
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 0 }}>
-                      {/* Up/Down arrows column */}
-                      <View style={{ marginRight: 6 }}>
-                        <TouchableOpacity
+                    <XStack alignItems="center">
+                      <YStack marginRight={6}>
+                        <YStack
+                          paddingHorizontal={4}
+                          paddingVertical={2}
+                          opacity={i === 0 ? 0.25 : 1}
                           onPress={() => moveGroupUp(i)}
                           disabled={i === 0}
-                          style={{ paddingHorizontal: 4, paddingVertical: 2, opacity: i === 0 ? 0.25 : 1 }}
                         >
-                          <Ionicons name="chevron-up" size={14} color="#64748B" />
-                        </TouchableOpacity>
-                        <TouchableOpacity
+                          <Ionicons name="chevron-up" size={14} color={muted} />
+                        </YStack>
+                        <YStack
+                          paddingHorizontal={4}
+                          paddingVertical={2}
+                          opacity={i === groups.length - 1 ? 0.25 : 1}
                           onPress={() => moveGroupDown(i)}
                           disabled={i === groups.length - 1}
-                          style={{ paddingHorizontal: 4, paddingVertical: 2, opacity: i === groups.length - 1 ? 0.25 : 1 }}
                         >
-                          <Ionicons name="chevron-down" size={14} color="#64748B" />
-                        </TouchableOpacity>
-                      </View>
+                          <Ionicons name="chevron-down" size={14} color={muted} />
+                        </YStack>
+                      </YStack>
 
-                      <TouchableOpacity
-                        onPress={() => isEditing ? resetForm() : handleEditExistingGroup(i)}
-                        style={{ width: 32, height: 32, alignItems: 'center', justifyContent: 'center' }}
-                      >
-                        <Ionicons
-                          name={isEditing ? 'close-circle-outline' : 'pencil-outline'}
-                          size={16}
-                          color={isEditing ? '#0D9488' : '#64748B'}
+                      {isEditing ? (
+                        <IconButton
+                          size="sm"
+                          icon="close-circle-outline"
+                          tone="accent"
+                          onPress={resetForm}
                         />
-                      </TouchableOpacity>
+                      ) : (
+                        <IconButton
+                          size="sm"
+                          icon="ellipsis-vertical"
+                          tone="neutral"
+                          onPress={() => setOpenMenuIndex(isMenuOpen ? null : i)}
+                        />
+                      )}
+                    </XStack>
 
-                      <TouchableOpacity
-                        onPress={() => handleRemoveGroup(i)}
-                        style={{ width: 32, height: 32, alignItems: 'center', justifyContent: 'center' }}
-                      >
-                        <Ionicons name="trash-outline" size={15} color="#EF4444" />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
+                    {isMenuOpen && (
+                      <>
+                        <YStack
+                          position="absolute"
+                          top={-1000}
+                          left={-1000}
+                          right={-1000}
+                          bottom={-1000}
+                          zIndex={50}
+                          onPress={() => setOpenMenuIndex(null)}
+                        />
+                        <YStack
+                          position="absolute"
+                          top={48}
+                          right={12}
+                          zIndex={60}
+                          backgroundColor="$surface"
+                          borderRadius={14}
+                          borderWidth={1}
+                          borderColor="$border"
+                          shadowColor="$shadowColor"
+                          shadowOffset={{ width: 0, height: 6 }}
+                          shadowOpacity={0.12}
+                          shadowRadius={16}
+                          elevation={8}
+                          minWidth={160}
+                          paddingVertical={4}
+                        >
+                          <XStack
+                            paddingHorizontal={14}
+                            paddingVertical={10}
+                            alignItems="center"
+                            gap={10}
+                            pressStyle={{ backgroundColor: "$surfaceAlt" }}
+                            onPress={() => {
+                              setOpenMenuIndex(null);
+                              openEditStageModal(i);
+                            }}
+                          >
+                            <Ionicons name="create-outline" size={16} color={muted} />
+                            <Text fontSize={14} fontWeight="500">
+                              {t("edit")}
+                            </Text>
+                          </XStack>
+                          <XStack
+                            paddingHorizontal={14}
+                            paddingVertical={10}
+                            alignItems="center"
+                            gap={10}
+                            pressStyle={{ backgroundColor: "$dangerSoft" }}
+                            onPress={() => {
+                              setOpenMenuIndex(null);
+                              handleRemoveGroup(i);
+                            }}
+                          >
+                            <Ionicons
+                              name="trash-outline"
+                              size={16}
+                              color={theme.danger?.val ?? "#EF4444"}
+                            />
+                            <Text fontSize={14} fontWeight="500" color="$danger">
+                              {t("delete")}
+                            </Text>
+                          </XStack>
+                        </YStack>
+                      </>
+                    )}
+                  </XStack>
                 );
               })}
-            </View>
+            </YStack>
           )}
 
-          {/* ── Add / Edit Stage Form ── */}
-          <View
-            style={{
-              borderRadius: 28,
-              borderWidth: 1.5,
-              borderColor: editingGroupIndex !== null ? '#0D9488' : '#E2E8F0',
-              backgroundColor: editingGroupIndex !== null ? '#F0FDFA' : '#FAFAFA',
-              padding: 20,
-              marginBottom: 16,
-            }}
-            className="dark:bg-journeyDarkCard dark:border-journeyDarkBorder"
+          <XStack
+            alignItems="center"
+            justifyContent="center"
+            paddingVertical={18}
+            borderRadius={20}
+            borderWidth={1.5}
+            borderStyle="dashed"
+            borderColor="$borderStrong"
+            backgroundColor="$surface"
+            gap={10}
+            marginBottom={16}
+            onPress={openNewStageModal}
+            pressStyle={{ opacity: 0.75, backgroundColor: "$accentSoft" }}
           >
-            {/* Form title */}
-            <View className="flex-row items-center justify-between mb-4">
-              <Text style={{ fontSize: 13, fontWeight: '700', color: editingGroupIndex !== null ? '#0D9488' : '#64748B', textTransform: 'uppercase', letterSpacing: 1 }}>
-                {editingGroupIndex !== null
-                  ? `${t('editStageTitle')} — ${editingGroupIndex + 1}.`
-                  : t('newStageStop')}
-              </Text>
-              {editingGroupIndex !== null && (
-                <TouchableOpacity onPress={resetForm} className="px-3 py-1 bg-[#0D9488]/10 rounded-full">
-                  <Text style={{ fontSize: 11, color: '#0D9488', fontWeight: '700' }}>{t('cancel')}</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-
-            {/* Stage name */}
-            <TextInput
-              className="border-b border-journeyBorder/40 dark:border-journeyDarkBorder/40 py-3 text-[15px] font-medium text-journeyText dark:text-journeyDarkText mb-4"
-              placeholder={t('stageNamePlaceholder')}
-              placeholderTextColor="#94A3B8"
-              value={groupName}
-              onChangeText={setGroupName}
-            />
-
-            {/* Duration */}
-            <TextInput
-              className="border-b border-journeyBorder/40 dark:border-journeyDarkBorder/40 py-3 text-[15px] font-medium text-journeyText dark:text-journeyDarkText mb-5"
-              placeholder={t('requiredDurationPlaceholder')}
-              placeholderTextColor="#94A3B8"
-              keyboardType="numeric"
-              value={groupDuration}
-              onChangeText={setGroupDuration}
-            />
-
-            {/* Daily tasks */}
-            <Text className="text-[11px] font-bold text-[#64748B] uppercase tracking-[2px] mb-3">{t('dailyTasks')}</Text>
-            {tasks.map((task, idx) => (
-              <View
-                key={idx}
-                className="flex-row items-start justify-between mb-2 bg-white dark:bg-journeyDarkBg px-3 py-2.5 rounded-xl border border-journeyBorder/30 dark:border-journeyDarkBorder/30"
-              >
-                <View className="flex-row items-start flex-1">
-                  <View className="w-1.5 h-1.5 rounded-full bg-journeyAccent/50 mr-3 mt-[7px]" />
-                  <View className="flex-1">
-                    <Text className="text-[13px] text-journeyText dark:text-journeyDarkText font-medium" numberOfLines={2}>
-                      {task.name}
-                    </Text>
-                    {!!task.description && (
-                      <Text className="text-[11px] text-journeyMuted dark:text-journeyMuted mt-0.5" numberOfLines={1}>
-                        {task.description}
-                      </Text>
-                    )}
-                  </View>
-                </View>
-                <TouchableOpacity onPress={() => handleRemoveTask(idx)} className="ml-2 p-1 mt-0.5">
-                  <Ionicons name="close" size={15} color="#94A3B8" />
-                </TouchableOpacity>
-              </View>
-            ))}
-            <View className="mt-2 border-b border-journeyBorder/40 dark:border-journeyDarkBorder/40 pb-2 mb-5">
-              <View className="flex-row items-center">
-                <TextInput
-                  className="flex-1 py-2 text-[13px] font-medium text-journeyText dark:text-journeyDarkText"
-                  placeholder={t('addTaskPlaceholder')}
-                  placeholderTextColor="#94A3B8"
-                  value={currentTask}
-                  onChangeText={setCurrentTask}
-                  onSubmitEditing={handleAddTask}
-                  returnKeyType="done"
-                  blurOnSubmit={false}
-                />
-                <TouchableOpacity
-                  onPress={handleAddTask}
-                  className="ml-2 px-4 py-2 bg-journeyAccent/10 rounded-[12px]"
-                >
-                  <Text className="text-journeyAccent font-bold text-[11px] uppercase tracking-wide">{t('add')}</Text>
-                </TouchableOpacity>
-              </View>
-              {currentTask.trim().length > 0 && (
-                <TextInput
-                  className="py-1.5 text-[11px] text-journeyMuted dark:text-journeyMuted"
-                  placeholder={t('taskNotePlaceholder')}
-                  placeholderTextColor="#B2C4C3"
-                  value={currentTaskDesc}
-                  onChangeText={setCurrentTaskDesc}
-                  returnKeyType="done"
-                />
-              )}
-            </View>
-
-            {/* Save stage button */}
-            <TouchableOpacity
-              onPress={handleSaveStage}
-              disabled={!isFormValid}
-              activeOpacity={0.8}
-              style={{
-                backgroundColor: isFormValid
-                  ? (editingGroupIndex !== null ? '#0D9488' : '#F8FAFC')
-                  : '#F1F5F9',
-                borderWidth: 1,
-                borderColor: isFormValid
-                  ? (editingGroupIndex !== null ? '#0D9488' : '#CBD5E1')
-                  : '#E2E8F0',
-                borderRadius: 20,
-                paddingVertical: 14,
-                alignItems: 'center',
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: 13,
-                  fontWeight: '700',
-                  color: isFormValid
-                    ? (editingGroupIndex !== null ? '#fff' : '#334155')
-                    : '#CBD5E1',
-                }}
-              >
-                {editingGroupIndex !== null ? t('updateStageBtn') : t('addStageToList')}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
+            <Ionicons name="add-circle-outline" size={20} color={accent} />
+            <Text fontSize={14} fontWeight="700" color="$accent" letterSpacing={0.2}>
+              {groups.length === 0 ? t("newStageStop") : t("addStage")}
+            </Text>
+          </XStack>
         </ScrollView>
 
-        {/* ── Floating Save Goal Button ── */}
         {canSaveGoal && (
-          <View className="absolute bottom-10 w-full px-8" pointerEvents="box-none">
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={handleSaveGoal}
-              className="bg-journeyAccent rounded-[24px] py-4 items-center justify-center shadow-sm"
-            >
-              <Text className="font-bold tracking-wide text-white text-[15px]">
-                {editingGoal ? t('saveChanges') : t('startJourney')}
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <YStack
+            position="absolute"
+            bottom={40}
+            left={0}
+            right={0}
+            paddingHorizontal={32}
+            style={{ pointerEvents: "box-none" }}
+          >
+            <Button size="lg" fullWidth onPress={handleSaveGoal}>
+              {editingGoal ? t("saveChanges") : t("startJourney")}
+            </Button>
+          </YStack>
         )}
       </KeyboardAvoidingView>
 
-      {/* ── AI Prompt Modal ── */}
       {isAiModalOpen && (
-        <View className="absolute inset-0 z-50 bg-black/50 justify-end">
-          <TouchableOpacity
-            activeOpacity={1}
-            className="flex-1 w-full"
+        <YStack
+          position="absolute"
+          top={0}
+          left={0}
+          right={0}
+          bottom={0}
+          zIndex={50}
+          justifyContent="flex-start"
+          alignItems="center"
+          paddingTop={72}
+        >
+          <YStack
+            position="absolute"
+            top={0}
+            left={0}
+            right={0}
+            bottom={0}
+            backgroundColor="rgba(0,0,0,0.5)"
             onPress={() => !isGenerating && setIsAiModalOpen(false)}
           />
           <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 40 : 20}
-            className="w-full"
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            keyboardVerticalOffset={0}
+            style={{ width: "100%", alignItems: "center", paddingHorizontal: 20 }}
           >
-            <View
-              className="bg-white dark:bg-journeyDarkBg w-full pt-6 pb-14 px-6 rounded-t-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.15)] border-t border-journeyBorder/40 dark:border-journeyDarkBorder/40"
+            <YStack
+              backgroundColor="$surface"
+              padding={24}
+              borderRadius={28}
+              width="100%"
+              maxWidth={480}
             >
-              <View className="flex-row items-center justify-between mb-5">
-                <View className="flex-row items-center">
-                  <Ionicons name="sparkles" size={22} color="#14B8A6" />
-                  <Text className="text-[18px] font-extrabold text-journeyText dark:text-journeyDarkText ml-2 tracking-tight">
-                    {t('aiModalTitle')}
+              <XStack alignItems="center" justifyContent="space-between" marginBottom={20}>
+                <XStack alignItems="center" gap={8}>
+                  <Ionicons name="sparkles" size={22} color={accent} />
+                  <Text fontSize={18} fontWeight="800" letterSpacing={-0.3}>
+                    {t("aiModalTitle")}
                   </Text>
-                </View>
+                </XStack>
                 {!isGenerating && (
-                  <TouchableOpacity
+                  <YStack
+                    padding={8}
+                    backgroundColor="$surfaceAlt"
+                    borderRadius={99}
                     onPress={() => setIsAiModalOpen(false)}
-                    className="p-2 bg-[#F8FAFC] dark:bg-journeyDarkCard rounded-full"
                   >
-                    <Ionicons name="close" size={18} color="#94A3B8" />
-                  </TouchableOpacity>
+                    <Ionicons name="close" size={18} color={subtle} />
+                  </YStack>
                 )}
-              </View>
+              </XStack>
 
               <TextInput
                 multiline
@@ -526,33 +600,329 @@ export default function CreateGoalScreen() {
                 editable={!isGenerating}
                 value={aiPrompt}
                 onChangeText={setAiPrompt}
-                placeholder={t('aiModalPromptPlaceholder')}
-                placeholderTextColor="#94A3B8"
-                className="bg-[#F8FAFC] dark:bg-journeyDarkCard border border-journeyBorder/50 dark:border-journeyDarkBorder/50 rounded-2xl p-5 h-36 text-[15px] font-medium text-journeyText dark:text-journeyDarkText"
-                style={{ textAlignVertical: 'top' }}
+                placeholder={t("aiModalPromptPlaceholder")}
+                placeholderTextColor={subtle}
+                style={{
+                  backgroundColor: theme.surfaceAlt?.val ?? "#F1F5F9",
+                  borderColor: theme.border?.val ?? "#E2E8F0",
+                  borderWidth: 1,
+                  borderRadius: 16,
+                  padding: 20,
+                  height: 144,
+                  fontSize: 15,
+                  fontWeight: "500",
+                  color: textColor,
+                  textAlignVertical: "top",
+                }}
               />
 
-              <TouchableOpacity
-                activeOpacity={0.8}
-                disabled={isGenerating || !aiPrompt.trim()}
-                onPress={handleAiGeneration}
-                className={cn(
-                  'mt-5 py-4 rounded-[20px] items-center flex-row justify-center',
-                  isGenerating || !aiPrompt.trim() ? 'bg-journeyMuted/30' : 'bg-[#0D9488]'
-                )}
-              >
-                {isGenerating ? (
-                  <>
-                    <Text className="text-white font-bold text-[15px] mr-2">⏳</Text>
-                    <Text className="text-white font-bold text-[15px]">{t('aiGenerating')}</Text>
-                  </>
-                ) : (
-                  <Text className="text-white font-extrabold text-[15px] tracking-wide">{t('aiGenerateAction')}</Text>
-                )}
-              </TouchableOpacity>
-            </View>
+              <YStack marginTop={20}>
+                <Button
+                  size="lg"
+                  fullWidth
+                  loading={isGenerating}
+                  disabled={isGenerating || !aiPrompt.trim()}
+                  onPress={handleAiGeneration}
+                >
+                  {isGenerating ? t("aiGenerating") : t("aiGenerateAction")}
+                </Button>
+              </YStack>
+            </YStack>
           </KeyboardAvoidingView>
-        </View>
+        </YStack>
+      )}
+
+      {isStageModalOpen && (
+        <YStack
+          position="absolute"
+          top={0}
+          left={0}
+          right={0}
+          bottom={0}
+          zIndex={40}
+          justifyContent="flex-start"
+          alignItems="center"
+          paddingTop={56}
+        >
+          <YStack
+            position="absolute"
+            top={0}
+            left={0}
+            right={0}
+            bottom={0}
+            backgroundColor="rgba(0,0,0,0.5)"
+            onPress={closeStageModal}
+          />
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            keyboardVerticalOffset={0}
+            style={{ width: "100%", alignItems: "center", paddingHorizontal: 20, flex: 1 }}
+          >
+            <YStack
+              backgroundColor="$surface"
+              padding={24}
+              borderRadius={28}
+              width="100%"
+              maxWidth={480}
+              flex={1}
+              marginBottom={40}
+            >
+              <XStack alignItems="center" justifyContent="space-between" marginBottom={20}>
+                <XStack alignItems="center" gap={8} flex={1}>
+                  <Ionicons
+                    name={editingGroupIndex !== null ? "create-outline" : "flag-outline"}
+                    size={22}
+                    color={accent}
+                  />
+                  <Text fontSize={18} fontWeight="800" letterSpacing={-0.3} numberOfLines={1}>
+                    {editingGroupIndex !== null
+                      ? `${t("editStageTitle")} — ${editingGroupIndex + 1}.`
+                      : t("newStageStop")}
+                  </Text>
+                </XStack>
+                <YStack
+                  padding={8}
+                  backgroundColor="$surfaceAlt"
+                  borderRadius={99}
+                  onPress={closeStageModal}
+                >
+                  <Ionicons name="close" size={18} color={subtle} />
+                </YStack>
+              </XStack>
+
+              <ScrollView
+                style={{ flex: 1 }}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                automaticallyAdjustKeyboardInsets
+              >
+                <TextInput
+                  placeholder={t("stageNamePlaceholder")}
+                  placeholderTextColor={subtle}
+                  value={groupName}
+                  onChangeText={setGroupName}
+                  style={{
+                    borderBottomWidth: 1,
+                    borderBottomColor: theme.border?.val ?? "#E2E8F0",
+                    paddingVertical: 12,
+                    fontSize: 15,
+                    fontWeight: "500",
+                    color: textColor,
+                    marginBottom: 16,
+                  }}
+                />
+
+                <TextInput
+                  placeholder={t("requiredDurationPlaceholder")}
+                  placeholderTextColor={subtle}
+                  keyboardType="numeric"
+                  value={groupDuration}
+                  onChangeText={setGroupDuration}
+                  style={{
+                    borderBottomWidth: 1,
+                    borderBottomColor: theme.border?.val ?? "#E2E8F0",
+                    paddingVertical: 12,
+                    fontSize: 15,
+                    fontWeight: "500",
+                    color: textColor,
+                    marginBottom: 20,
+                  }}
+                />
+
+                <Text
+                  fontSize={11}
+                  fontWeight="700"
+                  color="$textMuted"
+                  letterSpacing={2}
+                  marginBottom={12}
+                >
+                  {upper(t("dailyTasks"))}
+                </Text>
+
+                {tasks.map((task, idx) => (
+                  <XStack
+                    key={idx}
+                    alignItems="flex-start"
+                    justifyContent="space-between"
+                    marginBottom={8}
+                    backgroundColor="$surfaceAlt"
+                    paddingHorizontal={12}
+                    paddingVertical={10}
+                    borderRadius={12}
+                    borderWidth={1}
+                    borderColor="$border"
+                  >
+                    <XStack flex={1} alignItems="flex-start">
+                      <YStack
+                        width={6}
+                        height={6}
+                        borderRadius={3}
+                        backgroundColor="$accent"
+                        marginRight={12}
+                        marginTop={7}
+                        opacity={0.5}
+                      />
+                      <YStack flex={1}>
+                        <Text fontSize={13} fontWeight="500" numberOfLines={2}>
+                          {task.name}
+                        </Text>
+                        {!!task.description && (
+                          <Text fontSize={11} color="$textMuted" marginTop={2} numberOfLines={1}>
+                            {task.description}
+                          </Text>
+                        )}
+                      </YStack>
+                    </XStack>
+                    <YStack
+                      marginLeft={8}
+                      padding={4}
+                      marginTop={2}
+                      onPress={() => handleRemoveTask(idx)}
+                    >
+                      <Ionicons name="close" size={15} color={subtle} />
+                    </YStack>
+                  </XStack>
+                ))}
+
+                <XStack
+                  marginTop={tasks.length === 0 ? 0 : 4}
+                  alignItems="center"
+                  justifyContent="center"
+                  paddingVertical={12}
+                  borderRadius={12}
+                  borderWidth={1}
+                  borderStyle="dashed"
+                  borderColor="$borderStrong"
+                  backgroundColor="$surfaceAlt"
+                  gap={8}
+                  onPress={openTaskModal}
+                  pressStyle={{ opacity: 0.7 }}
+                >
+                  <Ionicons name="add" size={16} color={accent} />
+                  <Text fontSize={13} fontWeight="600" color="$accent" letterSpacing={0.2}>
+                    {t("addTask")}
+                  </Text>
+                </XStack>
+              </ScrollView>
+
+              <YStack marginTop={20}>
+                <Button
+                  size="lg"
+                  fullWidth
+                  disabled={!isFormValid}
+                  onPress={handleSaveStage}
+                >
+                  {editingGroupIndex !== null ? t("updateStageBtn") : t("addStageToList")}
+                </Button>
+              </YStack>
+            </YStack>
+          </KeyboardAvoidingView>
+        </YStack>
+      )}
+
+      {isTaskModalOpen && (
+        <YStack
+          position="absolute"
+          top={0}
+          left={0}
+          right={0}
+          bottom={0}
+          zIndex={50}
+          justifyContent="flex-start"
+          alignItems="center"
+          paddingTop={72}
+        >
+          <YStack
+            position="absolute"
+            top={0}
+            left={0}
+            right={0}
+            bottom={0}
+            backgroundColor="rgba(0,0,0,0.5)"
+            onPress={closeTaskModal}
+          />
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            keyboardVerticalOffset={0}
+            style={{ width: "100%", alignItems: "center", paddingHorizontal: 20 }}
+          >
+            <YStack
+              backgroundColor="$surface"
+              padding={24}
+              borderRadius={28}
+              width="100%"
+              maxWidth={480}
+            >
+              <XStack alignItems="center" justifyContent="space-between" marginBottom={20}>
+                <XStack alignItems="center" gap={8}>
+                  <Ionicons name="add-circle-outline" size={22} color={accent} />
+                  <Text fontSize={18} fontWeight="800" letterSpacing={-0.3}>
+                    {t("addTask")}
+                  </Text>
+                </XStack>
+                <YStack
+                  padding={8}
+                  backgroundColor="$surfaceAlt"
+                  borderRadius={99}
+                  onPress={closeTaskModal}
+                >
+                  <Ionicons name="close" size={18} color={subtle} />
+                </YStack>
+              </XStack>
+
+              <TextInput
+                autoFocus
+                value={currentTask}
+                onChangeText={setCurrentTask}
+                placeholder={t("addTaskPlaceholder")}
+                placeholderTextColor={subtle}
+                returnKeyType="next"
+                style={{
+                  backgroundColor: theme.surfaceAlt?.val ?? "#F1F5F9",
+                  borderColor: theme.border?.val ?? "#E2E8F0",
+                  borderWidth: 1,
+                  borderRadius: 16,
+                  paddingHorizontal: 16,
+                  paddingVertical: 14,
+                  fontSize: 15,
+                  fontWeight: "500",
+                  color: textColor,
+                  marginBottom: 12,
+                }}
+              />
+
+              <TextInput
+                value={currentTaskDesc}
+                onChangeText={setCurrentTaskDesc}
+                placeholder={t("taskNotePlaceholder")}
+                placeholderTextColor={subtle}
+                returnKeyType="done"
+                onSubmitEditing={handleAddTask}
+                style={{
+                  backgroundColor: theme.surfaceAlt?.val ?? "#F1F5F9",
+                  borderColor: theme.border?.val ?? "#E2E8F0",
+                  borderWidth: 1,
+                  borderRadius: 16,
+                  paddingHorizontal: 16,
+                  paddingVertical: 12,
+                  fontSize: 13,
+                  color: textColor,
+                }}
+              />
+
+              <YStack marginTop={20}>
+                <Button
+                  size="lg"
+                  fullWidth
+                  disabled={!currentTask.trim()}
+                  onPress={handleAddTask}
+                >
+                  {t("add")}
+                </Button>
+              </YStack>
+            </YStack>
+          </KeyboardAvoidingView>
+        </YStack>
       )}
     </SafeAreaView>
   );

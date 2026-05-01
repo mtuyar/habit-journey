@@ -481,6 +481,25 @@ export function getTodayProgress(goals: Goal[]): { completed: number; total: num
   return { completed, total };
 }
 
+/** Today's completed/total task counts for a single goal's active group.
+ *  Returns hasActiveToday=false when the active group's date range doesn't include today,
+ *  or when the goal has no active group at all. */
+export function getGoalTodayProgress(goal: Goal): { completed: number; total: number; hasActiveToday: boolean } {
+  const todayStr = format(new Date(), 'yyyy-MM-dd');
+  const todayMs = new Date(todayStr).getTime();
+  for (const group of goal.groups) {
+    if (group.status !== 'active' || !group.startDate) continue;
+    const startMs = new Date(format(new Date(group.startDate), 'yyyy-MM-dd')).getTime();
+    const endMs = addDays(new Date(group.startDate), group.durationInDays - 1).getTime();
+    if (todayMs < startMs || todayMs > endMs) continue;
+    const dayRecord = group.progress[todayStr] || {};
+    let completed = 0;
+    group.tasks.forEach(t => { if (dayRecord[t.id]) completed++; });
+    return { completed, total: group.tasks.length, hasActiveToday: true };
+  }
+  return { completed: 0, total: 0, hasActiveToday: false };
+}
+
 /** Activity level per day for a given month (0=none, 1=partial, 2=mid, 3=full) */
 export function getMonthActivity(
   goals: Goal[],

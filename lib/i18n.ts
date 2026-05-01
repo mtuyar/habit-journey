@@ -8,6 +8,7 @@ const dictionaries = {
     back: "Geri",
     next: "İleri",
     delete: "Sil",
+    edit: "Düzenle",
     success: "Başarılı",
     stage: "Aşama",
     task: "Görev",
@@ -26,7 +27,9 @@ const dictionaries = {
     streakDays: "gün",
     todaysFocus: "Bugünün Odağı",
     tasksToday: "görev bugün",
-    allDoneToday: "Bugün her şey tamam! 🎉",
+    allDoneToday: "Bugün her şey tamam!",
+    today: "Bugün",
+    dayStreakInline: "gün serisi",
 
     // Insights screen
     insightsTitle: "İstatistikler",
@@ -133,7 +136,7 @@ const dictionaries = {
     aiApiKeyPlaceholder: 'API anahtarınızı yapıştırın...',
     aiApiKeyHelp: 'Ücretsiz bir Gemini API anahtarı alarak hedeflerinizi saniyeler içinde otonom planlayabilirsiniz. (Google AI Studio üzerinden alınabilir)',
     aiSubtitle: 'Sadece hedefini yaz, süreci otonom çizelim.',
-    aiCreateButton: 'AI ile Otonom Planla ✨',
+    aiCreateButton: 'AI ile Otonom Planla',
     aiModalTitle: 'Yolculuğunu Tarif Et',
     aiModalPromptPlaceholder: 'Örn: İspanyolca öğrenmek istiyorum, 4 aşamalı ve günlük 15 dakikalık bir harita çıkar...',
     aiGenerating: 'Yolculuğunuz Çiziliyor...',
@@ -157,8 +160,8 @@ const dictionaries = {
     mon: "Pzt", tue: "Sal", wed: "Çar", thu: "Per", fri: "Cum", sat: "Cmt", sun: "Paz",
     todaysTasks: "Günün Görevleri",
     completed: "tamamlandı",
-    goalCompletedTitle: "🎉 Tebrikler! Hedef Tamamlandı!",
-    newStageUnlockedTitle: "🌟 Harika! Yeni Aşama Açıldı!",
+    goalCompletedTitle: "Tebrikler! Hedef Tamamlandı!",
+    newStageUnlockedTitle: "Harika! Yeni Aşama Açıldı!",
     goalCompletedDesc: "Bu hedefin tüm aşamalarını başarıyla (%90 üstü) bitirdiniz. Kendinizle gurur duyabilirsiniz.",
     newStageUnlockedDesc: "Bu aşamayı %90 başarıyla tamamladınız. Bir sonraki aşamanız artık açık ve sizi bekliyor!",
 
@@ -173,7 +176,7 @@ const dictionaries = {
 
     // JourneyNode status badges
     statusActive: "Aktif",
-    statusCompleted: "✓ Tamamlandı",
+    statusCompleted: "Tamamlandı",
     retryAttempt: "Deneme",
 
     // Settings (settings.tsx)
@@ -195,6 +198,15 @@ const dictionaries = {
     resetAll: "Hepsini Sil",
     resetSuccessMsg: "Tüm verileriniz sıfırlandı.",
     appFooterSubtitle: "Sade. Güzel. İstikrarlı.",
+
+    // Developer (dev-only)
+    developerTitle: "Geliştirici",
+    loadTestData: "Test Verisi Yükle",
+    loadTestDataDesc: "4 hedef · Şub–May programı dahil",
+    loadTestDataConfirm: "3 örnek hedef ve geçmiş ilerleme verisi yüklenir. Mevcut verilerle birleştirilir.",
+    loadAction: "Yükle",
+    testDataLoadedTitle: "Hazır",
+    testDataLoadedDesc: "Test verisi yüklendi.",
 
     // Archive
     archiveGoal: "Arşive Taşı",
@@ -220,6 +232,7 @@ const dictionaries = {
     back: "Back",
     next: "Next",
     delete: "Delete",
+    edit: "Edit",
     success: "Success",
     stage: "Stage",
     task: "Task",
@@ -238,7 +251,9 @@ const dictionaries = {
     streakDays: "days",
     todaysFocus: "Today's Focus",
     tasksToday: "tasks today",
-    allDoneToday: "All done today! 🎉",
+    allDoneToday: "All done today!",
+    today: "Today",
+    dayStreakInline: "day streak",
 
     // Insights screen
     insightsTitle: "Statistics",
@@ -345,7 +360,7 @@ const dictionaries = {
     aiApiKeyPlaceholder: 'Paste your API key...',
     aiApiKeyHelp: 'Get a free Gemini API key to autonomously plan your goals in seconds. (Google AI Studio)',
     aiSubtitle: "Just describe your goal, we'll map the journey.",
-    aiCreateButton: 'Plan Autonomously with AI ✨',
+    aiCreateButton: 'Plan Autonomously with AI',
     aiModalTitle: 'Describe Your Journey',
     aiModalPromptPlaceholder: 'Ex: I want to learn Spanish, map out a 4-stage map with 15 minutes of daily practice...',
     aiGenerating: 'Drafting Your Journey...',
@@ -369,8 +384,8 @@ const dictionaries = {
     mon: "Mon", tue: "Tue", wed: "Wed", thu: "Thu", fri: "Fri", sat: "Sat", sun: "Sun",
     todaysTasks: "Today's Tasks",
     completed: "completed",
-    goalCompletedTitle: "🎉 Congrats! Goal Completed!",
-    newStageUnlockedTitle: "🌟 Awesome! New Stage Unlocked!",
+    goalCompletedTitle: "Congrats! Goal Completed!",
+    newStageUnlockedTitle: "Awesome! New Stage Unlocked!",
     goalCompletedDesc: "You successfully finished all stages of this goal (above 90%). You can be proud of yourself.",
     newStageUnlockedDesc: "You completed this stage with over 90% success. Your next stage is now unlocked and waiting for you!",
 
@@ -385,7 +400,7 @@ const dictionaries = {
 
     // JourneyNode status badges
     statusActive: "Active",
-    statusCompleted: "✓ Completed",
+    statusCompleted: "Completed",
     retryAttempt: "Attempt",
 
     // Settings (settings.tsx)
@@ -407,6 +422,15 @@ const dictionaries = {
     resetAll: "Delete All",
     resetSuccessMsg: "All your data has been reset.",
     appFooterSubtitle: "Simple. Beautiful. Consistent.",
+
+    // Developer (dev-only)
+    developerTitle: "Developer",
+    loadTestData: "Load Test Data",
+    loadTestDataDesc: "4 goals · Feb–May plan included",
+    loadTestDataConfirm: "Loads 3 example goals and historical progress data. Merges with your existing data.",
+    loadAction: "Load",
+    testDataLoadedTitle: "Ready",
+    testDataLoadedDesc: "Test data loaded.",
 
     // Archive
     archiveGoal: "Archive",
@@ -434,5 +458,11 @@ export function useTranslation() {
     return dictionaries[lang][key] || dictionaries['tr'][key] || key;
   };
 
-  return { t, lang };
+  // Locale-aware uppercase. Turkish needs `tr-TR` so 'i' → 'İ' (dotted) and
+  // 'ı' → 'I' (dotless). Use this instead of CSS `textTransform: uppercase`
+  // for any user-visible label that may contain Turkish characters.
+  const upper = (s: string) =>
+    s.toLocaleUpperCase(lang === 'tr' ? 'tr-TR' : 'en-US');
+
+  return { t, lang, upper };
 }

@@ -1,50 +1,49 @@
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import { useSettingsStore } from '@/store/useSettingsStore';
-import { useColorScheme } from 'nativewind';
-import 'react-native-reanimated';
-import './global.css';
-import { BottomTabBar } from '@/components/BottomTabBar';
-
-function ThemeController() {
-  const isDarkMode = useSettingsStore(state => state.isDarkMode);
-  const { setColorScheme } = useColorScheme();
-
-  useEffect(() => {
-    setColorScheme(isDarkMode ? 'dark' : 'light');
-  }, [isDarkMode, setColorScheme]);
-
-  return <StatusBar style={isDarkMode ? 'light' : 'dark'} />;
-}
+import { Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { TamaguiProvider, Theme } from "tamagui";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import "react-native-reanimated";
+import config from "../tamagui.config";
+import { useSettingsStore } from "@/store/useSettingsStore";
+import { BottomTabBar } from "@/components/BottomTabBar";
 
 function RootStack() {
-  const isDarkMode = useSettingsStore(state => state.isDarkMode);
+  const isDarkMode = useSettingsStore((s) => s.isDarkMode);
   return (
     <Stack
       screenOptions={{
         headerShown: false,
-        animation: 'none',
-        contentStyle: { backgroundColor: isDarkMode ? '#07211F' : '#F0FDFA' },
+        animation: "none",
+        contentStyle: {
+          backgroundColor: isDarkMode ? "#07211F" : "#F8FAFC",
+        },
       }}
     >
       <Stack.Screen name="index" />
       <Stack.Screen name="onboarding" />
       <Stack.Screen name="insights" />
       <Stack.Screen name="settings" />
-      <Stack.Screen name="create" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
-      <Stack.Screen name="group/[id]" options={{ animation: 'slide_from_right' }} />
-      <Stack.Screen name="goal/[id]" options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen
+        name="create"
+        options={{ presentation: "modal", animation: "slide_from_bottom" }}
+      />
+      <Stack.Screen name="group/[id]" options={{ animation: "slide_from_right" }} />
+      <Stack.Screen name="goal/[id]" options={{ animation: "slide_from_right" }} />
     </Stack>
   );
 }
 
 export default function RootLayout() {
+  const isDarkMode = useSettingsStore((s) => s.isDarkMode);
   return (
-    <>
-      <ThemeController />
-      <RootStack />
-      <BottomTabBar />
-    </>
+    <TamaguiProvider config={config} defaultTheme={isDarkMode ? "dark" : "light"}>
+      <Theme name={isDarkMode ? "dark" : "light"}>
+        <SafeAreaProvider>
+          <StatusBar style={isDarkMode ? "light" : "dark"} />
+          <RootStack />
+          <BottomTabBar />
+        </SafeAreaProvider>
+      </Theme>
+    </TamaguiProvider>
   );
 }
