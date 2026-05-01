@@ -1,107 +1,81 @@
-import React from 'react';
-import { View, TouchableOpacity, Platform } from 'react-native';
-import { router, usePathname } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { Text } from '@/components/ui/Text';
-import { useTranslation } from '@/lib/i18n';
-import { useSettingsStore } from '@/store/useSettingsStore';
+import React from "react";
+import { Platform } from "react-native";
+import { router, usePathname } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { XStack, YStack, useTheme } from "tamagui";
+import { Text } from "@/components/ui/Text";
+import { useTranslation } from "@/lib/i18n";
 
 const TABS = [
-  {
-    path: '/',
-    icon: 'leaf-outline' as const,
-    activeIcon: 'leaf' as const,
-    labelKey: 'tabHome' as const,
-  },
-  {
-    path: '/insights',
-    icon: 'bar-chart-outline' as const,
-    activeIcon: 'bar-chart' as const,
-    labelKey: 'tabStats' as const,
-  },
-  {
-    path: '/settings',
-    icon: 'settings-outline' as const,
-    activeIcon: 'settings' as const,
-    labelKey: 'tabSettings' as const,
-  },
+  { path: "/", icon: "leaf-outline", activeIcon: "leaf", labelKey: "tabHome" },
+  { path: "/insights", icon: "bar-chart-outline", activeIcon: "bar-chart", labelKey: "tabStats" },
+  { path: "/settings", icon: "settings-outline", activeIcon: "settings", labelKey: "tabSettings" },
 ] as const;
 
-const TAB_SCREENS = new Set(['/', '/insights', '/settings']);
+const TAB_SCREENS = new Set(["/", "/insights", "/settings"]);
 
 export function BottomTabBar() {
   const pathname = usePathname();
   const { t } = useTranslation();
-  const isDarkMode = useSettingsStore(state => state.isDarkMode);
+  const insets = useSafeAreaInsets();
+  const theme = useTheme();
 
   if (!TAB_SCREENS.has(pathname)) return null;
 
-  const bg = isDarkMode ? '#0E3330' : '#FFFFFF';
-  const border = isDarkMode ? '#1B5E58' : '#B2F0E8';
+  const accent = theme.accent?.val ?? "#0D9488";
+  const muted = theme.textMuted?.val ?? "#64748B";
 
   return (
-    <View
-      style={{
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        backgroundColor: bg,
-        borderTopWidth: 1,
-        borderTopColor: border,
-        flexDirection: 'row',
-        alignItems: 'flex-end',
-        paddingTop: 10,
-        paddingBottom: Platform.OS === 'ios' ? 28 : 14,
-        paddingHorizontal: 8,
-      }}
+    <XStack
+      position="absolute"
+      bottom={0}
+      left={0}
+      right={0}
+      backgroundColor="$surface"
+      alignItems="flex-end"
+      paddingTop={10}
+      paddingHorizontal={8}
+      paddingBottom={Math.max(Platform.OS === "android" ? 36 : 14, insets.bottom)}
     >
-      {TABS.map(tab => {
+      {TABS.map((tab) => {
         const isActive = pathname === tab.path;
-        const iconColor = isActive ? '#0D9488' : '#5F8B8A';
-
+        const color = isActive ? accent : muted;
         return (
-          <TouchableOpacity
+          <YStack
             key={tab.path}
-            activeOpacity={0.7}
+            flex={1}
+            alignItems="center"
+            justifyContent="center"
+            paddingVertical={2}
+            gap={4}
             onPress={() => router.replace(tab.path as any)}
-            style={{
-              flex: 1,
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 4,
-              paddingVertical: 2,
-            }}
+            pressStyle={{ opacity: 0.7 }}
+            cursor="pointer"
           >
-            {/* Active indicator pill */}
-            <View
-              style={{
-                width: isActive ? 20 : 4,
-                height: 3,
-                borderRadius: 99,
-                backgroundColor: isActive ? '#0D9488' : 'transparent',
-                marginBottom: 4,
-                alignSelf: 'center',
-              }}
+            <YStack
+              width={isActive ? 20 : 4}
+              height={3}
+              borderRadius={99}
+              backgroundColor={isActive ? accent : "transparent"}
+              marginBottom={4}
             />
             <Ionicons
               name={isActive ? tab.activeIcon : tab.icon}
               size={22}
-              color={iconColor}
+              color={color}
             />
             <Text
-              style={{
-                fontSize: 10,
-                fontWeight: isActive ? '700' : '500',
-                color: iconColor,
-                letterSpacing: 0.2,
-              }}
+              fontSize={10}
+              fontWeight={isActive ? "700" : "500"}
+              letterSpacing={0.2}
+              color={color}
             >
               {t(tab.labelKey)}
             </Text>
-          </TouchableOpacity>
+          </YStack>
         );
       })}
-    </View>
+    </XStack>
   );
 }

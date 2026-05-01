@@ -1,35 +1,50 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { View, ScrollView, TouchableOpacity } from 'react-native';
-import { Text } from '@/components/ui/Text';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useLocalSearchParams, router } from 'expo-router';
-import { useProgressStore } from '@/store/useProgressStore';
-import { cn } from '@/components/ui/Card';
-import { differenceInDays, addDays, format, isToday, startOfMonth, startOfWeek, endOfMonth, endOfWeek, eachDayOfInterval, isSameMonth } from 'date-fns';
-import { tr } from 'date-fns/locale';
-import { Ionicons } from '@expo/vector-icons';
-import { useTranslation } from '@/lib/i18n';
-import * as Haptics from 'expo-haptics';
-
+import React, { useState, useEffect, useRef } from "react";
+import { ScrollView } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useLocalSearchParams, router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import {
+  differenceInDays,
+  addDays,
+  format,
+  isToday,
+  startOfMonth,
+  startOfWeek,
+  endOfMonth,
+  endOfWeek,
+  eachDayOfInterval,
+  isSameMonth,
+} from "date-fns";
+import { tr } from "date-fns/locale";
+import * as Haptics from "expo-haptics";
+import { XStack, YStack, useTheme } from "tamagui";
+import { Text } from "@/components/ui/Text";
+import { IconButton } from "@/components/ui/IconButton";
+import { ProgressBar } from "@/components/ui/ProgressBar";
+import { useProgressStore } from "@/store/useProgressStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
+import { useTranslation } from "@/lib/i18n";
 
 export default function GroupDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { t } = useTranslation();
-  
-  const goals = useProgressStore(state => state.goals);
-  const toggleTask = useProgressStore(state => state.toggleTaskCompletion);
+  const { t, upper } = useTranslation();
+  const theme = useTheme();
+  const isDarkMode = useSettingsStore((s) => s.isDarkMode);
+
+  const goals = useProgressStore((s) => s.goals);
+  const toggleTask = useProgressStore((s) => s.toggleTaskCompletion);
 
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
   const [isCalendarView, setIsCalendarView] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
   const celebratedDays = useRef<Set<string>>(new Set());
+  const lastProgressByDate = useRef<Map<string, number>>(new Map());
   const dayStripRef = useRef<ScrollView>(null);
 
-  let currentGoal = null;
-  let currentGroup = null;
-
+  let currentGoal = null as null | (typeof goals)[number];
+  let currentGroup = null as null | (typeof goals)[number]["groups"][number];
   for (const g of goals) {
-    const gr = g.groups.find(x => x.id === id);
+    const gr = g.groups.find((x) => x.id === id);
     if (gr) {
       currentGoal = g;
       currentGroup = gr;
@@ -39,34 +54,38 @@ export default function GroupDetailScreen() {
 
   let groupCompletedTasks = 0;
   let groupTotalTasks = 0;
-
   if (currentGroup) {
-     groupTotalTasks = currentGroup.durationInDays * currentGroup.tasks.length;
-     Object.values(currentGroup.progress).forEach(dayRecord => {
-        Object.values(dayRecord).forEach(done => { if (done) groupCompletedTasks++; });
-     });
+    groupTotalTasks = currentGroup.durationInDays * currentGroup.tasks.length;
+    Object.values(currentGroup.progress).forEach((dayRecord) => {
+      Object.values(dayRecord).forEach((done) => {
+        if (done) groupCompletedTasks++;
+      });
+    });
   }
-  const groupPercentage = groupTotalTasks === 0 ? 0 : Math.round((groupCompletedTasks / groupTotalTasks) * 100);
+  const groupPercentage =
+    groupTotalTasks === 0 ? 0 : Math.round((groupCompletedTasks / groupTotalTasks) * 100);
 
-  // Compute days & selectedDayData before any early return so hooks below are always called
   const startDate = currentGroup?.startDate ? new Date(currentGroup.startDate) : new Date();
   const days = currentGroup
     ? Array.from({ length: currentGroup.durationInDays }).map((_, i) => {
         const date = addDays(startDate, i);
-        const dateStr = format(date, 'yyyy-MM-dd');
-        const dayProgress = currentGroup.progress[dateStr] || {};
+        const dateStr = format(date, "yyyy-MM-dd");
+        const dayProgress = currentGroup!.progress[dateStr] || {};
         let completedCount = 0;
-        currentGroup.tasks.forEach(task => { if (dayProgress[task.id]) completedCount++; });
+        currentGroup!.tasks.forEach((task) => {
+          if (dayProgress[task.id]) completedCount++;
+        });
         return {
           index: i,
           dateStr,
-          displayDay: format(date, 'd', { locale: tr }),
-          displayWeekday: format(date, 'EE', { locale: tr }),
+          displayDay: format(date, "d", { locale: tr }),
+          displayWeekday: format(date, "EE", { locale: tr }),
           isCurrentDay: isToday(date),
-          isAllCompleted: completedCount === currentGroup.tasks.length && currentGroup.tasks.length > 0,
-          progressPerc: currentGroup.tasks.length === 0 ? 0 : completedCount / currentGroup.tasks.length,
+          isAllCompleted:
+            completedCount === currentGroup!.tasks.length && currentGroup!.tasks.length > 0,
+          progressPerc: currentGroup!.tasks.length === 0 ? 0 : completedCount / currentGroup!.tasks.length,
           progressNum: completedCount,
-          total: currentGroup.tasks.length,
+          total: currentGroup!.tasks.length,
         };
       })
     : [];
@@ -78,365 +97,620 @@ export default function GroupDetailScreen() {
       const diff = Math.max(0, differenceInDays(new Date(), start));
       const idx = diff < currentGroup.durationInDays ? diff : currentGroup.durationInDays - 1;
       setSelectedDayIndex(idx);
-      // Scroll the day strip so today is visible (item width 46 + gap 12 = 58px)
       if (idx > 2) {
         setTimeout(() => {
-          dayStripRef.current?.scrollTo({ x: Math.max(0, idx * 58 - 64), animated: false });
+          dayStripRef.current?.scrollTo({ x: Math.max(0, idx * 60 - 64), animated: false });
         }, 80);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Completion celebration effect — must be before early return to obey hooks rules
   useEffect(() => {
-    if (!currentGroup || currentGroup.status === 'locked' || !selectedDayData) return;
-    const allDone = selectedDayData.total > 0 && selectedDayData.progressNum === selectedDayData.total;
-    if (allDone && !celebratedDays.current.has(selectedDayData.dateStr)) {
-      celebratedDays.current.add(selectedDayData.dateStr);
+    if (!currentGroup || currentGroup.status === "locked" || !selectedDayData) return;
+    const { dateStr, progressNum, total } = selectedDayData;
+    const prev = lastProgressByDate.current.get(dateStr);
+    lastProgressByDate.current.set(dateStr, progressNum);
+    if (prev === undefined) return;
+    const justCompleted = total > 0 && prev < total && progressNum === total;
+    if (justCompleted && !celebratedDays.current.has(dateStr)) {
+      celebratedDays.current.add(dateStr);
       setShowCelebration(true);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       const timer = setTimeout(() => setShowCelebration(false), 2400);
       return () => clearTimeout(timer);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedDayData?.progressNum]);
+  }, [selectedDayData?.progressNum, selectedDayData?.dateStr]);
+
+  const bg = theme.bg?.val ?? "#F8FAFC";
+  const muted = theme.textMuted?.val ?? "#64748B";
+  const subtle = theme.textSubtle?.val ?? "#94A3B8";
+  const accent = theme.accent?.val ?? "#0D9488";
+  const success = theme.success?.val ?? "#059669";
+  const warning = theme.warning?.val ?? "#F59E0B";
 
   if (!currentGroup || !currentGoal) {
     return (
-      <SafeAreaView className="flex-1 items-center justify-center bg-journeyBg dark:bg-journeyDarkBg">
-        <Text className="text-journeyMuted dark:text-journeyMuted font-light">{t('groupNotFound')}</Text>
+      <SafeAreaView style={{ flex: 1, backgroundColor: bg }}>
+        <YStack flex={1} alignItems="center" justifyContent="center">
+          <Text color="$textMuted" fontWeight="300">
+            {t("groupNotFound")}
+          </Text>
+        </YStack>
       </SafeAreaView>
     );
   }
 
   const isLastGroup = currentGoal.groups.indexOf(currentGroup) === currentGoal.groups.length - 1;
-  const isLocked = currentGroup.status === 'locked';
+  const isLocked = currentGroup.status === "locked";
   const endDate = addDays(startDate, currentGroup.durationInDays - 1);
-  // selectedDayData is always defined here: days.length == durationInDays >= 1
-  // and selectedDayIndex is clamped inside the useEffect above
   const sd = selectedDayData ?? days[0]!;
 
-  // Logic for the full month Grid calendar view
-  let calendarStart = startOfWeek(startOfMonth(startDate), { weekStartsOn: 1 });
-  let calendarEnd = endOfWeek(endOfMonth(endDate), { weekStartsOn: 1 });
-  
+  // Heatmap calendar setup
+  const calendarStart = startOfWeek(startOfMonth(startDate), { weekStartsOn: 1 });
+  const calendarEnd = endOfWeek(endOfMonth(endDate), { weekStartsOn: 1 });
   const gridDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
-  const isMultiMonth = format(startDate, 'M') !== format(endDate, 'M');
-  const monthLabel = isMultiMonth 
-    ? `${format(startDate, 'MMMM')} - ${format(endDate, 'MMMM yyyy', { locale: tr })}`
-    : format(startDate, 'MMMM yyyy', { locale: tr });
+  const isMultiMonth = format(startDate, "M") !== format(endDate, "M");
+  const monthLabel = isMultiMonth
+    ? `${format(startDate, "MMMM")} - ${format(endDate, "MMMM yyyy", { locale: tr })}`
+    : format(startDate, "MMMM yyyy", { locale: tr });
+
+  const levelBg = isDarkMode
+    ? ["transparent", "#1B5E58", "#0D9488", "#0a7a6f"]
+    : ["transparent", "#99E6D8", "#14B8A6", "#0D9488"];
+
+  const levelTextColor = (level: 0 | 1 | 2 | 3, inMonth: boolean, isFuture: boolean): string => {
+    if (!inMonth) return "transparent";
+    if (isFuture) return isDarkMode ? "#2D4A47" : "#CBD5E1";
+    if (level === 0) return isDarkMode ? "#5F8B8A" : "#94A3B8";
+    if (level === 1) return isDarkMode ? "#CCFBF1" : "#134E4A";
+    return "#fff";
+  };
 
   return (
-    <SafeAreaView className="flex-1 bg-journeyBg dark:bg-journeyDarkBg">
-      {/* Soft Header */}
-      <View className="px-6 pt-4 pb-4">
-        <View className="h-12 flex-row items-center justify-between relative z-10">
-          <TouchableOpacity 
-            onPress={() => router.back()} 
-            className="w-12 h-12 items-center justify-center -ml-2 z-20"
+    <SafeAreaView style={{ flex: 1, backgroundColor: bg }}>
+      {/* Header */}
+      <YStack paddingHorizontal={24} paddingTop={16} paddingBottom={16}>
+        <XStack height={48} alignItems="center" justifyContent="space-between" position="relative">
+          <IconButton
+            icon="chevron-back"
+            size="lg"
+            onPress={() => router.back()}
+            marginLeft={-8}
+            zIndex={20}
+          />
+
+          <YStack
+            position="absolute"
+            left={0}
+            right={0}
+            height="100%"
+            alignItems="center"
+            justifyContent="center"
+            pointerEvents="none"
           >
-            <Ionicons name="chevron-back" size={24} color="#94A3B8" />
-          </TouchableOpacity>
-          
-          <View className="absolute inset-x-0 h-full items-center justify-center pointer-events-none z-10">
-            <Text 
-              className="text-[15px] font-semibold text-journeyText dark:text-journeyDarkText tracking-wide text-center px-10" 
-              numberOfLines={1}
-            >
+            <Text fontSize={15} fontWeight="600" letterSpacing={0.3} textAlign="center" paddingHorizontal={40} numberOfLines={1}>
               {currentGroup.name}
             </Text>
-          </View>
-          
-          <TouchableOpacity
-            onPress={() => setIsCalendarView(!isCalendarView)}
-            className="w-12 h-12 items-center justify-center -mr-2 bg-journeyCard dark:bg-journeyDarkCard border border-journeyBorder/40 dark:border-journeyDarkBorder/40 rounded-full shadow-sm z-20"
-          >
-            <Ionicons name={isCalendarView ? "list-outline" : "calendar-outline"} size={22} color="#14B8A6" />
-          </TouchableOpacity>
-        </View>
-      </View>
+          </YStack>
 
-      <View className="px-6 mb-2 mt-4">
-         <View className="bg-journeyAccent/8 dark:bg-journeyAccent/15 border border-journeyAccent/20 dark:border-journeyAccent/30 py-3.5 px-5 rounded-[20px] flex-row justify-between items-center">
-            <View>
-              <Text className="text-journeyText dark:text-journeyDarkText font-medium text-[13px]">{t('totalStageProgress')}</Text>
-              <Text className="text-journeyMuted text-[11px] mt-0.5">
-                {format(startDate, 'd MMM', { locale: tr })} — {format(endDate, 'd MMM yyyy', { locale: tr })}
-              </Text>
-            </View>
-            <Text className="text-journeyAccent font-bold text-[14px]">%{groupPercentage}</Text>
-         </View>
-      </View>
+          <IconButton
+            icon={isCalendarView ? "list-outline" : "calendar-outline"}
+            tone="accent"
+            size="lg"
+            onPress={() => setIsCalendarView(!isCalendarView)}
+            marginRight={-8}
+            zIndex={20}
+          />
+        </XStack>
+      </YStack>
+
+      {/* Stage progress strip */}
+      <YStack paddingHorizontal={24} marginBottom={8} marginTop={16}>
+        <YStack
+          backgroundColor="$surface"
+          borderColor="$border"
+          borderWidth={1}
+          paddingVertical={14}
+          paddingHorizontal={16}
+          borderRadius={20}
+          gap={10}
+        >
+          <XStack justifyContent="space-between" alignItems="center">
+            <Text
+              fontSize={11}
+              fontWeight="700"
+              color="$textMuted"
+              letterSpacing={1.4}
+            >
+              {upper(t("totalStageProgress"))}
+            </Text>
+            <Text color="$text" fontWeight="700" fontSize={13}>
+              %{groupPercentage}
+            </Text>
+          </XStack>
+          <ProgressBar value={groupPercentage / 100} tone="accent" height={6} />
+          <Text color="$textSubtle" fontSize={11}>
+            {format(startDate, "d MMM", { locale: tr })} —{" "}
+            {format(endDate, "d MMM yyyy", { locale: tr })}
+          </Text>
+        </YStack>
+      </YStack>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 60 }} showsVerticalScrollIndicator={false}>
-        
-        {/* Subtle Intro */}
-        <View className="px-8 mt-6 mb-8 items-center">
-          <Text className="text-[11px] text-journeyMuted dark:text-journeyMuted uppercase tracking-[3px] font-medium mb-1">
-            {t('dailyFlow')}
+        <YStack paddingHorizontal={32} marginTop={24} marginBottom={32} alignItems="center">
+          <Text
+            fontSize={11}
+            color="$textMuted"
+            letterSpacing={3}
+            fontWeight="500"
+            marginBottom={4}
+          >
+            {upper(t("dailyFlow"))}
           </Text>
-          <Text className="text-[26px] font-light text-journeyText dark:text-journeyDarkText text-center leading-[32px]">
-            {currentGroup.durationInDays} {t('dayChain')}{`\n`}<Text className="font-semibold text-journeyAccent">{t('break')}</Text>
+          <Text fontSize={26} fontWeight="300" textAlign="center" lineHeight={32}>
+            {currentGroup.durationInDays} {t("dayChain")}
+            {`\n`}
+            <Text fontWeight="600" color="$accent">
+              {t("break")}
+            </Text>
           </Text>
-        </View>
+        </YStack>
 
-        {/* Dynamic Day Views */}
-        <View className="mb-10 w-full">
+        {/* Day views */}
+        <YStack marginBottom={40} width="100%">
           {isCalendarView ? (
-            <View className="px-6 w-full">
-              <View className="bg-journeyCard dark:bg-journeyDarkCard rounded-[32px] border border-journeyBorder/40 dark:border-journeyDarkBorder/40 w-full p-4 pb-6">
-                
-                {/* Month Title */}
-                <Text className="text-center font-bold text-journeyText dark:text-journeyDarkText text-lg mb-4 capitalize">
-                   {monthLabel}
+            <YStack paddingHorizontal={20} width="100%">
+              <YStack
+                backgroundColor="$surface"
+                borderRadius={20}
+                borderWidth={1}
+                borderColor="$border"
+                padding={16}
+              >
+                <Text
+                  textAlign="center"
+                  fontWeight="700"
+                  color="$accent"
+                  fontSize={15}
+                  textTransform="capitalize"
+                  marginBottom={16}
+                >
+                  {monthLabel}
                 </Text>
 
-                {/* Days of week header */}
-                <View className="flex-row justify-between mb-3 w-full px-2">
-                   {['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].map(w => (
-                     <Text key={w} className="w-[12%] text-center text-[10px] font-bold text-journeyMuted dark:text-journeyMuted uppercase">
-                       {t(w as any)}
-                     </Text>
-                   ))}
-                </View>
+                <XStack marginBottom={8}>
+                  {(["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const).map((w) => (
+                    <Text
+                      key={w}
+                      flex={1}
+                      textAlign="center"
+                      fontSize={10}
+                      fontWeight="700"
+                      color="$textMuted"
+                      letterSpacing={0.5}
+                    >
+                      {upper(t(w))}
+                    </Text>
+                  ))}
+                </XStack>
 
-                {/* Grid */}
-                 <View className="flex-row flex-wrap justify-between gap-y-3 px-2">
+                <XStack flexWrap="wrap">
                   {gridDays.map((d, i) => {
-                     const dateStrFormat = format(d, 'yyyy-MM-dd');
-                     const dayData = days.find(x => x.dateStr === dateStrFormat);
-                     const isCurrentMonth = isSameMonth(d, startDate) || isSameMonth(d, endDate); 
+                    const dateStr = format(d, "yyyy-MM-dd");
+                    const dayData = days.find((x) => x.dateStr === dateStr);
+                    const inMonth = !!dayData;
+                    const isFuture = dateStr > format(new Date(), "yyyy-MM-dd");
+                    const isCurrentDay = dayData?.isCurrentDay ?? false;
+                    const isSelected = !!dayData && selectedDayIndex === dayData.index;
+                    const isCurrentMonth =
+                      isSameMonth(d, startDate) || isSameMonth(d, endDate);
 
-                     if (dayData) {
-                       const isSelected = selectedDayIndex === dayData.index;
-                       return (
-                         <TouchableOpacity 
-                           key={i}
-                           onPress={() => setSelectedDayIndex(dayData.index)}
-                           activeOpacity={0.8}
-                           className={cn(
-                             "w-[12%] aspect-square items-center justify-center rounded-[18px] border",
-                             dayData.isAllCompleted ? "bg-journeyAccent/10 border-journeyAccent/30" : "bg-[#F8FAFC]/50 dark:bg-black/20 border-journeyBorder/30 dark:border-journeyDarkBorder/30",
-                             isSelected && !dayData.isAllCompleted && "border-journeyAccent/60 bg-journeyCard dark:bg-journeyDarkCard"
-                           )}
-                         >
-                           <View className="flex-1 w-full items-center justify-center">
-                             <Text className={cn("text-[13px] leading-tight", dayData.isAllCompleted ? "text-journeyAccent font-bold" : isSelected ? "text-journeyText dark:text-journeyDarkText font-bold" : "text-journeyText dark:text-journeyDarkText font-medium")}>
-                               {format(d, 'd')}
-                             </Text>
-                             {(!dayData.isAllCompleted && dayData.progressPerc > 0) && (
-                                <View className="mt-1 w-1 h-1 rounded-full bg-journeyAccent" />
-                             )}
-                             {(dayData.isAllCompleted) && (
-                                <View className="mt-1 w-1 h-1 rounded-full bg-journeyAccent shadow-[0_0_2px_rgba(20,184,166,0.8)]" />
-                             )}
-                           </View>
-                         </TouchableOpacity>
-                       )
-                     } else {
-                       // Passive empty day from the month padding or outside interval
-                       return (
-                         <View key={i} className="w-[12%] aspect-square items-center justify-center rounded-xl bg-transparent">
-                           <Text className={cn("text-[13px]", isCurrentMonth ? "text-journeyMuted dark:text-journeyMuted/40 font-light" : "text-transparent")}>
-                              {format(d, 'd')}
-                           </Text>
-                         </View>
-                       )
-                     }
+                    const level: 0 | 1 | 2 | 3 = !inMonth || isFuture
+                      ? 0
+                      : dayData!.isAllCompleted
+                      ? 3
+                      : dayData!.progressPerc >= 0.5
+                      ? 2
+                      : dayData!.progressPerc > 0
+                      ? 1
+                      : 0;
+
+                    const cellBg = inMonth && !isFuture ? levelBg[level] : "transparent";
+                    const todayBg =
+                      isCurrentDay && level === 0
+                        ? isDarkMode
+                          ? "#0D948830"
+                          : "#CCFBF1"
+                        : cellBg;
+                    const tColor = levelTextColor(level, inMonth, isFuture);
+                    const fadedColor = isDarkMode ? "#2D4A47" : "#CBD5E1";
+
+                    return (
+                      <YStack
+                        key={i}
+                        width="14.28%"
+                        aspectRatio={1}
+                        alignItems="center"
+                        justifyContent="center"
+                        marginBottom={4}
+                        onPress={() => {
+                          if (inMonth && !isFuture) setSelectedDayIndex(dayData!.index);
+                        }}
+                        pressStyle={inMonth && !isFuture ? { opacity: 0.75 } : undefined}
+                      >
+                        <YStack
+                          width={34}
+                          height={34}
+                          borderRadius={10}
+                          alignItems="center"
+                          justifyContent="center"
+                          backgroundColor={todayBg}
+                          borderWidth={isSelected ? 2.5 : isCurrentDay ? 2 : 0}
+                          borderColor={isSelected ? warning : isCurrentDay ? accent : "transparent"}
+                        >
+                          <Text
+                            fontSize={13}
+                            fontWeight={isCurrentDay ? "800" : level > 0 ? "700" : "400"}
+                            color={
+                              isCurrentDay && level === 0
+                                ? accent
+                                : inMonth
+                                ? tColor
+                                : isCurrentMonth
+                                ? fadedColor
+                                : "transparent"
+                            }
+                          >
+                            {format(d, "d")}
+                          </Text>
+                        </YStack>
+                      </YStack>
+                    );
                   })}
-                </View>
-              </View>
-            </View>
+                </XStack>
+
+                <XStack alignItems="center" justifyContent="flex-end" gap={4} marginTop={8}>
+                  {levelBg.map((c, i) => (
+                    <YStack
+                      key={i}
+                      width={12}
+                      height={12}
+                      borderRadius={3}
+                      backgroundColor={
+                        c === "transparent" ? (isDarkMode ? "#1B5E5830" : "#F1F5F9") : c
+                      }
+                      borderWidth={c === "transparent" ? 1 : 0}
+                      borderColor={isDarkMode ? "#1B5E58" : "#E2E8F0"}
+                    />
+                  ))}
+                </XStack>
+              </YStack>
+            </YStack>
           ) : (
             <ScrollView
               ref={dayStripRef}
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 32, gap: 12 }}
-              snapToInterval={58}
+              contentContainerStyle={{ paddingHorizontal: 24, gap: 8 }}
+              snapToInterval={60}
               decelerationRate="fast"
             >
               {days.map((day, i) => {
                 const isSelected = selectedDayIndex === i;
-                
-                return (
-                  <TouchableOpacity 
-                    key={i}
-                    onPress={() => setSelectedDayIndex(i)}
-                    activeOpacity={0.8}
-                    className={cn(
-                      "w-[46px] h-[76px] rounded-[24px] items-center py-3.5 justify-between border",
-                      day.isAllCompleted ? "bg-journeyAccent/10 border-journeyAccent/20" : "bg-journeyCard dark:bg-journeyDarkCard border-journeyBorder/40 dark:border-journeyDarkBorder/40",
-                      isSelected && !day.isAllCompleted && "border-journeyAccent/30 bg-[#F0FDF4]/50"
-                    )}
-                  >
-                    <Text className={cn(
-                      "text-[10px] uppercase font-medium",
-                      day.isAllCompleted ? "text-journeyAccent" : isSelected ? "text-journeyAccent" : "text-journeyMuted dark:text-journeyMuted"
-                    )}>
-                      {day.displayWeekday}
-                    </Text>
+                const todayStr = format(new Date(), "yyyy-MM-dd");
+                const isFuture = day.dateStr > todayStr;
+                const isCurrentDay = day.isCurrentDay;
+                const isPicked = isSelected && !isCurrentDay;
 
-                    <View className="items-center justify-center">
-                      <Text className={cn(
-                        "text-[18px] font-light",
-                        day.isAllCompleted ? "text-journeyAccent" : "text-journeyText dark:text-journeyDarkText"
-                      )}>
+                // Three visual states: today (accent), picked-not-today (muted), default (surface)
+                const cellBg = isCurrentDay
+                  ? isDarkMode
+                    ? "#0D948820"
+                    : "#F0FDFA"
+                  : isPicked
+                  ? isDarkMode
+                    ? "#16332F"
+                    : "#F1F5F9"
+                  : isDarkMode
+                  ? "#0E3330"
+                  : "#FFFFFF";
+                const cellBorder = isCurrentDay
+                  ? accent
+                  : isPicked
+                  ? subtle
+                  : isDarkMode
+                  ? "#1B5E58"
+                  : "#E2E8F0";
+                const cellBorderWidth = isCurrentDay ? 2 : isPicked ? 2 : 1;
+
+                const headerBg = isCurrentDay
+                  ? isDarkMode
+                    ? "#0D948830"
+                    : "#CCFBF1"
+                  : isPicked
+                  ? isDarkMode
+                    ? "#1F4541"
+                    : "#E2E8F0"
+                  : isDarkMode
+                  ? "#0a2826"
+                  : "#F8FAFC";
+                const headerBorder = isCurrentDay
+                  ? accent
+                  : isPicked
+                  ? subtle
+                  : isDarkMode
+                  ? "#1B5E58"
+                  : "#E2E8F0";
+                const dayLabelColor = isCurrentDay ? accent : muted;
+                const numColor = isCurrentDay
+                  ? accent
+                  : isPicked
+                  ? muted
+                  : isDarkMode
+                  ? "#CCFBF1"
+                  : "#0F172A";
+                const dotColor = day.isAllCompleted
+                  ? success
+                  : day.progressPerc > 0
+                  ? warning
+                  : isFuture
+                  ? "transparent"
+                  : isDarkMode
+                  ? "#1B5E58"
+                  : "#CBD5E1";
+
+                return (
+                  <YStack
+                    key={i}
+                    width={52}
+                    borderRadius={16}
+                    overflow="hidden"
+                    backgroundColor={cellBg}
+                    borderWidth={cellBorderWidth}
+                    borderColor={cellBorder}
+                    onPress={() => setSelectedDayIndex(i)}
+                    pressStyle={{ opacity: 0.75 }}
+                  >
+                    <YStack
+                      width="100%"
+                      alignItems="center"
+                      paddingVertical={5}
+                      backgroundColor={headerBg}
+                      borderBottomWidth={0.5}
+                      borderBottomColor={headerBorder}
+                    >
+                      <Text
+                        fontSize={9}
+                        fontWeight="700"
+                        color={dayLabelColor}
+                        letterSpacing={0.4}
+                      >
+                        {upper(day.displayWeekday)}
+                      </Text>
+                    </YStack>
+
+                    <YStack alignItems="center" justifyContent="center" paddingVertical={7}>
+                      <Text
+                        fontSize={17}
+                        fontWeight={isCurrentDay ? "800" : isPicked ? "700" : "600"}
+                        color={numColor}
+                        lineHeight={20}
+                      >
                         {day.displayDay}
                       </Text>
-                    </View>
+                    </YStack>
 
-                    <View className="w-[18px] h-[3px] rounded-full bg-journeyBorder overflow-hidden">
-                      <View className="h-full bg-journeyAccent rounded-full" style={{ width: `${day.progressPerc * 100}%` }} />
-                    </View>
-                  </TouchableOpacity>
+                    <YStack alignItems="center" paddingBottom={7}>
+                      <YStack width={7} height={7} borderRadius={4} backgroundColor={dotColor} />
+                    </YStack>
+                  </YStack>
                 );
               })}
             </ScrollView>
           )}
-        </View>
+        </YStack>
 
-        <View className="px-8 mb-6 flex-row items-baseline justify-between mt-2">
-          <Text className="text-journeyText dark:text-journeyDarkText text-xl font-medium tracking-tight">{t('todaysTasks')}</Text>
-          <Text className="text-xs text-journeyMuted dark:text-journeyMuted font-light">
-            {sd.progressNum} / {sd.total} {isLocked ? t('task') : t('completed')}
+        <XStack paddingHorizontal={32} marginBottom={24} alignItems="baseline" justifyContent="space-between" marginTop={8}>
+          <Text fontSize={20} fontWeight="500" letterSpacing={-0.3}>
+            {t("todaysTasks")}
           </Text>
-        </View>
+          <Text fontSize={12} color="$textMuted" fontWeight="300">
+            {sd.progressNum} / {sd.total} {isLocked ? t("task") : t("completed")}
+          </Text>
+        </XStack>
 
-        {currentGroup.status === 'completed' && (
-           <View className="px-6 mb-4">
-             <View className="bg-journeyAccent/10 px-5 py-4 rounded-[20px] border border-journeyAccent/20">
-               <Text className="text-journeyAccent font-bold text-[15px] mb-1">
-                 {isLastGroup ? t('goalCompletedTitle') : t('newStageUnlockedTitle')}
-               </Text>
-               <Text className="text-journeyText dark:text-journeyDarkText/80 text-[13px] leading-snug font-medium">
-                 {isLastGroup ? t('goalCompletedDesc') : t('newStageUnlockedDesc')}
-               </Text>
-             </View>
-           </View>
+        {currentGroup.status === "completed" && (
+          <YStack paddingHorizontal={24} marginBottom={16}>
+            <YStack
+              backgroundColor="$accentSoft"
+              paddingHorizontal={20}
+              paddingVertical={16}
+              borderRadius={20}
+              borderWidth={1}
+              borderColor="$accent"
+            >
+              <Text color="$accent" fontWeight="700" fontSize={15} marginBottom={4}>
+                {isLastGroup ? t("goalCompletedTitle") : t("newStageUnlockedTitle")}
+              </Text>
+              <Text fontSize={13} fontWeight="500" lineHeight={18}>
+                {isLastGroup ? t("goalCompletedDesc") : t("newStageUnlockedDesc")}
+              </Text>
+            </YStack>
+          </YStack>
         )}
 
         {isLocked && (
-           <View className="px-6 mb-4">
-             <View className="bg-journeyBorder/20 dark:bg-journeyDarkCard px-4 py-3.5 rounded-[16px] flex-row items-center border border-journeyBorder/50 dark:border-journeyDarkBorder/50">
-               <Ionicons name="lock-closed-outline" size={16} color="#64748B" />
-               <Text className="text-[#64748B] text-[13px] ml-2.5 font-normal flex-1 leading-snug">
-                 {t('stageLocked')}
-               </Text>
-             </View>
-           </View>
+          <YStack paddingHorizontal={24} marginBottom={16}>
+            <XStack
+              backgroundColor="$surfaceAlt"
+              paddingHorizontal={16}
+              paddingVertical={14}
+              borderRadius={16}
+              alignItems="center"
+              borderWidth={1}
+              borderColor="$border"
+            >
+              <Ionicons name="lock-closed-outline" size={16} color={muted} />
+              <Text color="$textMuted" fontSize={13} marginLeft={10} flex={1} lineHeight={18}>
+                {t("stageLocked")}
+              </Text>
+            </XStack>
+          </YStack>
         )}
 
-        {/* Delicate Task List */}
-        <View className="px-6 space-y-3">
-           {currentGroup.tasks.length === 0 && (
-             <Text className="text-center text-journeyMuted dark:text-journeyMuted text-[13px] font-light mt-4">{t('noTasksDefined')}</Text>
-           )}
-           {currentGroup.tasks.map((task, index) => {
-             const isTaskDone = currentGroup.progress[sd.dateStr]?.[task.id] || false;
-             
-             return (
-               <TouchableOpacity
-                 key={task.id}
-                activeOpacity={isLocked ? 1 : 0.7}
+        <YStack paddingHorizontal={24}>
+          {currentGroup.tasks.length === 0 && (
+            <Text textAlign="center" color="$textMuted" fontSize={13} fontWeight="300" marginTop={16}>
+              {t("noTasksDefined")}
+            </Text>
+          )}
+          {currentGroup.tasks.map((task) => {
+            const isTaskDone = currentGroup!.progress[sd.dateStr]?.[task.id] || false;
+
+            return (
+              <XStack
+                key={task.id}
+                alignItems="center"
+                padding={16}
+                borderRadius={20}
+                marginBottom={12}
+                backgroundColor={isLocked ? "$surface" : isTaskDone ? "$bg" : "$surface"}
+                borderWidth={1}
+                borderColor={isLocked ? "transparent" : "$border"}
+                opacity={isLocked ? 0.55 : 1}
                 onPress={() => {
                   if (!isLocked) {
                     const willComplete = !isTaskDone;
-                    toggleTask(currentGoal.id, currentGroup.id, sd.dateStr, task.id);
+                    toggleTask(currentGoal!.id, currentGroup!.id, sd.dateStr, task.id);
                     if (willComplete) {
                       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                     }
                   }
                 }}
-                className={cn(
-                  "flex-row items-center p-4 rounded-[28px]",
-                  isLocked ? "bg-journeyCard dark:bg-journeyDarkCard/40 border border-transparent" : 
-                  isTaskDone ? "bg-journeyBg dark:bg-journeyDarkBg border border-journeyBorder/20 dark:border-journeyDarkBorder/20 mb-3" : "bg-journeyCard dark:bg-journeyDarkCard border border-journeyBorder/40 dark:border-journeyDarkBorder/40 mb-3"
-                )}
+                pressStyle={isLocked ? undefined : { opacity: 0.7 }}
               >
-                <View className={cn(
-                  "w-6 h-6 rounded-full border mr-4 items-center justify-center",
-                  isTaskDone ? "bg-journeyAccent border-journeyAccent" : isLocked ? "border-journeyMuted/30" : "border-journeyMuted/40 bg-transparent"
-                )}>
+                <YStack
+                  width={24}
+                  height={24}
+                  borderRadius={12}
+                  borderWidth={1}
+                  marginRight={16}
+                  alignItems="center"
+                  justifyContent="center"
+                  backgroundColor={isTaskDone ? "$accent" : "transparent"}
+                  borderColor={isTaskDone ? "$accent" : "$borderStrong"}
+                >
                   {isTaskDone && <Ionicons name="checkmark" size={14} color="#FFF" />}
-                  {isLocked && !isTaskDone && <Ionicons name="lock-closed" size={10} color="#CBD5E1" />}
-                </View>
-                <View className="flex-1">
-                  <Text className={cn(
-                    "text-[15px]",
-                    isTaskDone ? "text-journeyMuted dark:text-journeyMuted/60 font-normal" : "text-journeyText dark:text-journeyDarkText font-normal"
-                  )}>
+                  {isLocked && !isTaskDone && (
+                    <Ionicons name="lock-closed" size={10} color={subtle} />
+                  )}
+                </YStack>
+                <YStack flex={1}>
+                  <Text fontSize={15} color={isTaskDone ? "$textMuted" : "$text"}>
                     {task.name}
                   </Text>
                   {!!task.description && (
-                    <Text className="text-[11px] text-journeyMuted dark:text-journeyMuted mt-0.5 leading-snug">
+                    <Text fontSize={11} color="$textMuted" marginTop={2} lineHeight={14}>
                       {task.description}
                     </Text>
                   )}
-                </View>
-               </TouchableOpacity>
-             )
-           })}
-        </View>
-
+                </YStack>
+              </XStack>
+            );
+          })}
+        </YStack>
       </ScrollView>
 
-      {/* Completion Celebration Overlay */}
       {showCelebration && (
-        <View
-          className="absolute inset-0 items-center justify-center"
-          style={{ backgroundColor: 'rgba(7,33,31,0.55)' }}
+        <YStack
+          position="absolute"
+          top={0}
+          left={0}
+          right={0}
+          bottom={0}
+          alignItems="center"
+          justifyContent="center"
+          backgroundColor="rgba(7,33,31,0.55)"
         >
-          <TouchableOpacity
-            activeOpacity={1}
-            className="absolute inset-0"
+          <YStack
+            position="absolute"
+            top={0}
+            left={0}
+            right={0}
+            bottom={0}
             onPress={() => setShowCelebration(false)}
           />
-          <View
-            className="bg-white dark:bg-journeyDarkCard rounded-[36px] items-center mx-7 relative overflow-hidden"
-            style={{ shadowColor: '#0D9488', shadowOffset: { width: 0, height: 12 }, shadowOpacity: 0.25, shadowRadius: 32, elevation: 16, paddingHorizontal: 36, paddingTop: 36, paddingBottom: 32 }}
+          <YStack
+            backgroundColor="$surface"
+            borderRadius={36}
+            alignItems="center"
+            marginHorizontal={28}
+            position="relative"
+            overflow="hidden"
+            shadowColor="$accent"
+            shadowOffset={{ width: 0, height: 12 }}
+            shadowOpacity={0.25}
+            shadowRadius={32}
+            paddingHorizontal={36}
+            paddingTop={36}
+            paddingBottom={32}
           >
-            {/* Teal accent strip at top */}
-            <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 5, backgroundColor: '#0D9488' }} />
+            <YStack position="absolute" top={0} left={0} right={0} height={5} backgroundColor="$accent" />
 
-            {/* Close button */}
-            <TouchableOpacity
+            <YStack
+              position="absolute"
+              top={16}
+              right={16}
+              width={32}
+              height={32}
+              alignItems="center"
+              justifyContent="center"
+              borderRadius={16}
+              backgroundColor="rgba(0,0,0,0.06)"
               onPress={() => setShowCelebration(false)}
-              className="absolute top-4 right-4 w-8 h-8 items-center justify-center rounded-full"
-              style={{ backgroundColor: 'rgba(0,0,0,0.06)' }}
             >
-              <Ionicons name="close" size={15} color="#94A3B8" />
-            </TouchableOpacity>
+              <Ionicons name="close" size={15} color={subtle} />
+            </YStack>
 
-            {/* Crescent + hands motif */}
-            <View style={{ width: 72, height: 72, borderRadius: 36, backgroundColor: '#F0FDFA', borderWidth: 2, borderColor: '#B2F0E8', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
-              <Text style={{ fontSize: 36 }}>🤲</Text>
-            </View>
+            <YStack
+              width={72}
+              height={72}
+              borderRadius={20}
+              backgroundColor="$accentTint"
+              borderWidth={2}
+              borderColor="$accent"
+              alignItems="center"
+              justifyContent="center"
+              marginBottom={18}
+            >
+              <Ionicons name="sparkles" size={32} color={accent} />
+            </YStack>
 
-            {/* Arabic subtitle */}
-            <Text style={{ fontSize: 22, color: '#0D9488', fontWeight: '300', letterSpacing: 3, marginBottom: 10, textAlign: 'center' }}>
-              {t('celebrationSub')}
+            <Text fontSize={22} color="$accent" fontWeight="300" letterSpacing={3} marginBottom={10} textAlign="center">
+              {t("celebrationSub")}
+            </Text>
+            <Text fontSize={24} fontWeight="700" textAlign="center" marginBottom={12} letterSpacing={-0.3}>
+              {t("celebrationTitle")}
+            </Text>
+            <Text color="$textMuted" fontSize={13} textAlign="center" lineHeight={20} maxWidth={230}>
+              {t("celebrationDesc")}
             </Text>
 
-            {/* Main title */}
-            <Text className="text-journeyText dark:text-journeyDarkText text-[24px] font-bold text-center mb-3 tracking-tight">
-              {t('celebrationTitle')}
-            </Text>
-
-            {/* Description */}
-            <Text className="text-journeyMuted text-[13px] text-center leading-relaxed" style={{ maxWidth: 230 }}>
-              {t('celebrationDesc')}
-            </Text>
-
-            {/* Gold divider dots */}
-            <View style={{ flexDirection: 'row', gap: 6, marginTop: 20, marginBottom: 4 }}>
-              {[0,1,2].map(i => (
-                <View key={i} style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: i === 1 ? '#F59E0B' : '#B2F0E8' }} />
+            <XStack gap={6} marginTop={20} marginBottom={4}>
+              {[0, 1, 2].map((i) => (
+                <YStack
+                  key={i}
+                  width={5}
+                  height={5}
+                  borderRadius={3}
+                  backgroundColor={i === 1 ? warning : "$borderStrong"}
+                />
               ))}
-            </View>
-          </View>
-        </View>
+            </XStack>
+          </YStack>
+        </YStack>
       )}
     </SafeAreaView>
   );

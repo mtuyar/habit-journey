@@ -1,17 +1,46 @@
-import * as Notifications from 'expo-notifications';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { Platform, Alert } from 'react-native';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+const isExpoGo =
+  Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+
+type NotificationsModule = typeof import('expo-notifications');
+let _notifications: NotificationsModule | null = null;
+let _handlerInitialized = false;
+
+function getNotifications(): NotificationsModule | null {
+  if (isExpoGo) return null;
+  if (_notifications) return _notifications;
+  _notifications = require('expo-notifications') as NotificationsModule;
+  if (!_handlerInitialized) {
+    _notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+        shouldShowBanner: true,
+        shouldShowList: true,
+      }),
+    });
+    _handlerInitialized = true;
+  }
+  return _notifications;
+}
+
+function warnExpoGo() {
+  Alert.alert(
+    'Bildirimler için Geliştirme Derlemesi Gerekli',
+    'Expo Go (Android) artık bildirimleri desteklemiyor. Bildirimleri kullanmak için bir geliştirme derlemesi (development build) çalıştırın.',
+  );
+}
 
 export async function requestNotificationPermissions(): Promise<boolean> {
+  const Notifications = getNotifications();
+  if (!Notifications) {
+    warnExpoGo();
+    return false;
+  }
+
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('habit-reminders', {
       name: 'Günlük Hatırlatıcı',
@@ -23,32 +52,36 @@ export async function requestNotificationPermissions(): Promise<boolean> {
 
   const { status: existingStatus } = await Notifications.getPermissionsAsync();
   let finalStatus = existingStatus;
-  
+
   if (existingStatus !== 'granted') {
     const { status } = await Notifications.requestPermissionsAsync();
     finalStatus = status;
   }
-  
+
   if (finalStatus !== 'granted') {
     Alert.alert('Erişim Reddedildi', 'Bildirim alabilmek için ayarlardan izin vermeniz gerekmektedir.');
     return false;
   }
-  
+
   return true;
 }
 
 export async function scheduleDailyReminder(hour: number, minute: number): Promise<boolean> {
+  const Notifications = getNotifications();
+  if (!Notifications) {
+    warnExpoGo();
+    return false;
+  }
+
   try {
-    // Clear any existing notifications first to ensure only 1 active reminder
     await Notifications.cancelAllScheduledNotificationsAsync();
 
     const hasPermission = await requestNotificationPermissions();
     if (!hasPermission) return false;
 
-    // Use Expo's standard daily trigger structure
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: "Alışkanlık Yolculuğum 🚀",
+        title: "Alışkanlık Yolculuğum",
         body: "Günün hedeflerini tamamlamak için güzel bir vakit! Zinciri kırma.",
         sound: true,
       },
@@ -68,5 +101,7 @@ export async function scheduleDailyReminder(hour: number, minute: number): Promi
 }
 
 export async function cancelDailyReminder() {
+  const Notifications = getNotifications();
+  if (!Notifications) return;
   await Notifications.cancelAllScheduledNotificationsAsync();
 }
